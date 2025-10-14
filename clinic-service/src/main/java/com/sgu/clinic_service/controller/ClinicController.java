@@ -4,6 +4,7 @@ import com.sgu.clinic_service.dto.request.clinic.ClinicCreateRequestDto;
 import com.sgu.clinic_service.dto.request.clinic.ClinicUpdateRequestDto;
 import com.sgu.clinic_service.dto.response.clinic.ClinicResponseDto;
 import com.sgu.clinic_service.dto.response.common.ApiResponse;
+import com.sgu.clinic_service.dto.response.common.PaginationResponse;
 import com.sgu.clinic_service.service.ClinicService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,14 +22,19 @@ public class ClinicController {
     private final ClinicService clinicService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<ClinicResponseDto>>> getAllClinics() {
-        List<ClinicResponseDto> clinics = clinicService.getAllClinics();
+    public ResponseEntity<ApiResponse<List<ClinicResponseDto>>> getClinics(
+            @RequestParam(required = false) String name,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        PaginationResponse<ClinicResponseDto> result = clinicService.getClinics(name, page, size);
 
         ApiResponse<List<ClinicResponseDto>> response = ApiResponse.<List<ClinicResponseDto>>builder()
                 .status(HttpStatus.OK.value())
                 .success(true)
-                .message("Clinics retrieved successfully")
-                .data(clinics)
+                .message(result.getData().isEmpty() ? "No clinics found" : "Clinics retrieved successfully")
+                .data(result.getData())
+                .meta(result.getMeta())
                 .build();
 
         return ResponseEntity
@@ -84,24 +90,6 @@ public class ClinicController {
                 .success(true)
                 .message("Clinic updated successfully")
                 .data(updatedClinic)
-                .build();
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(response);
-    }
-
-    @GetMapping("/search")
-    public ResponseEntity<ApiResponse<List<ClinicResponseDto>>> searchClinicsByName(
-            @RequestParam String name
-    ) {
-        List<ClinicResponseDto> result = clinicService.searchClinicsByName(name);
-
-        ApiResponse<List<ClinicResponseDto>> response = ApiResponse.<List<ClinicResponseDto>>builder()
-                .status(HttpStatus.OK.value())
-                .success(true)
-                .message("Clinics retrieved successfully")
-                .data(result)
                 .build();
 
         return ResponseEntity

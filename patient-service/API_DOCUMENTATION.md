@@ -12,27 +12,38 @@ All requests and responses use `application/json`.
 
 ## Error Responses
 
-### Validation Error (400 Bad Request)
+All errors follow this envelope:
 
 ```json
 {
-  "timestamp": "2024-01-15T10:30:00.000Z",
   "status": 400,
+  "success": false,
   "error": "Bad Request",
-  "message": "Validation failed",
-  "path": "/api/patients"
+  "message": "Validation failed"
 }
 ```
 
-### Not Found Error (404 Not Found)
+Examples:
+
+- Validation Error (400):
 
 ```json
 {
-  "timestamp": "2024-01-15T10:30:00.000Z",
+  "status": 400,
+  "success": false,
+  "error": "Validation Failed",
+  "message": "{full_name=Full name is required}"
+}
+```
+
+- Not Found (404):
+
+```json
+{
   "status": 404,
+  "success": false,
   "error": "Not Found",
-  "message": "Patient not found",
-  "path": "/api/patients/550e8400-e29b-41d4-a716-446655440000"
+  "message": "Patient not found"
 }
 ```
 
@@ -46,14 +57,14 @@ Creates a new patient record in the system.
 
 #### Request Body
 
-| Field       | Type   | Required | Validation | Description                     |
-| ----------- | ------ | -------- | ---------- | ------------------------------- |
-| `full_name` | String | Yes      | NotBlank   | Patient's full name             |
-| `dob`       | Date   | Yes      | NotNull    | Date of birth (ISO 8601 format) |
-| `gender`    | Enum   | Yes      | NotNull    | Must be "MALE" or "FEMALE"      |
-| `phone`     | String | Yes      | Pattern    | 10 digits starting with 0       |
-| `address`   | String | Yes      | NotBlank   | Patient's address               |
-| `user_id`   | UUID   | Yes      | NotNull    | Associated user identifier      |
+| Field       | Type   | Required | Validation              | Description                                       |
+| ----------- | ------ | -------- | ----------------------- | ------------------------------------------------- |
+| `full_name` | String | Yes      | NotBlank, Size(max=255) | Patient's full name                               |
+| `dob`       | Date   | Yes      | NotNull, Past           | Date of birth (ISO 8601, must be in the past)     |
+| `gender`    | Enum   | Yes      | NotNull                 | Must be "MALE" or "FEMALE"                        |
+| `phone`     | String | Yes      | NotBlank, Pattern       | VN mobile (0xxxxxxxxx) or 1800/1900 (8-10 digits) |
+| `address`   | String | Yes      | NotBlank, Size(max=255) | Patient's address                                 |
+| `user_id`   | UUID   | Yes      | NotNull                 | Associated user identifier                        |
 
 #### Example Request Body
 
@@ -62,7 +73,7 @@ Creates a new patient record in the system.
   "full_name": "John Doe",
   "dob": "1990-05-15T00:00:00.000Z",
   "gender": "MALE",
-  "phone": "0123456789",
+  "phone": "0912345678",
   "address": "123 Main Street, City, State",
   "user_id": "550e8400-e29b-41d4-a716-446655440000"
 }
@@ -71,19 +82,24 @@ Creates a new patient record in the system.
 #### Response
 
 - **Status Code:** `201 Created`
-- **Body:** PatientResponseDto object
+- **Body:** ApiResponse envelope
 
 #### Example Response
 
 ```json
 {
-  "patient_id": "550e8400-e29b-41d4-a716-446655440001",
-  "full_name": "John Doe",
-  "dob": "1990-05-15T00:00:00.000Z",
-  "gender": "MALE",
-  "phone": "0123456789",
-  "address": "123 Main Street, City, State",
-  "user_id": "550e8400-e29b-41d4-a716-446655440000"
+  "status": 201,
+  "success": true,
+  "message": "Patient created successfully",
+  "data": {
+    "patient_id": "550e8400-e29b-41d4-a716-446655440001",
+    "full_name": "John Doe",
+    "dob": "1990-05-15T00:00:00.000Z",
+    "gender": "MALE",
+    "phone": "0912345678",
+    "address": "123 Main Street, City, State",
+    "user_id": "550e8400-e29b-41d4-a716-446655440000"
+  }
 }
 ```
 
@@ -104,19 +120,24 @@ Retrieves a specific patient by their unique identifier.
 #### Response
 
 - **Status Code:** `200 OK`
-- **Body:** PatientResponseDto object
+- **Body:** ApiResponse envelope
 
 #### Example Response
 
 ```json
 {
-  "patient_id": "550e8400-e29b-41d4-a716-446655440001",
-  "full_name": "John Doe",
-  "dob": "1990-05-15T00:00:00.000Z",
-  "gender": "MALE",
-  "phone": "0123456789",
-  "address": "123 Main Street, City, State",
-  "user_id": "550e8400-e29b-41d4-a716-446655440000"
+  "status": 200,
+  "success": true,
+  "message": "Patient fetched successfully",
+  "data": {
+    "patient_id": "550e8400-e29b-41d4-a716-446655440001",
+    "full_name": "John Doe",
+    "dob": "1990-05-15T00:00:00.000Z",
+    "gender": "MALE",
+    "phone": "0912345678",
+    "address": "123 Main Street, City, State",
+    "user_id": "550e8400-e29b-41d4-a716-446655440000"
+  }
 }
 ```
 
@@ -139,36 +160,32 @@ Retrieves all patients with pagination support.
 #### Response
 
 - **Status Code:** `200 OK`
-- **Body:** Page object containing PatientResponseDto array
+- **Body:** ApiResponse with data list and pagination meta
 
 #### Example Response
 
 ```json
 {
-  "content": [
+  "status": 200,
+  "success": true,
+  "message": "Patients fetched successfully",
+  "data": [
     {
       "patient_id": "550e8400-e29b-41d4-a716-446655440001",
       "full_name": "John Doe",
       "dob": "1990-05-15T00:00:00.000Z",
       "gender": "MALE",
-      "phone": "0123456789",
+      "phone": "0912345678",
       "address": "123 Main Street, City, State",
       "user_id": "550e8400-e29b-41d4-a716-446655440000"
     }
   ],
-  "pageable": {
-    "pageNumber": 0,
+  "meta": {
+    "currentPage": 0,
     "pageSize": 10,
-    "sort": {
-      "sorted": true,
-      "unsorted": false
-    }
-  },
-  "totalElements": 1,
-  "totalPages": 1,
-  "last": true,
-  "first": true,
-  "numberOfElements": 1
+    "totalPages": 1,
+    "totalItems": 1
+  }
 }
 ```
 
@@ -188,33 +205,38 @@ Updates an existing patient record.
 
 #### Request Body
 
-| Field       | Type   | Required | Validation | Description                     |
-| ----------- | ------ | -------- | ---------- | ------------------------------- |
-| `full_name` | String | No       | -          | Patient's full name             |
-| `dob`       | Date   | No       | -          | Date of birth (ISO 8601 format) |
-| `gender`    | Enum   | No       | -          | Must be "MALE" or "FEMALE"      |
-| `phone`     | String | No       | Pattern    | 10 digits starting with 0       |
-| `address`   | String | No       | -          | Patient's address               |
-| `user_id`   | UUID   | No       | -          | Associated user identifier      |
+| Field       | Type   | Required | Validation    | Description                                   |
+| ----------- | ------ | -------- | ------------- | --------------------------------------------- |
+| `full_name` | String | No       | Size(max=255) | Patient's full name                           |
+| `dob`       | Date   | No       | Past          | Date of birth (ISO 8601, must be in the past) |
+| `gender`    | Enum   | No       | -             | Must be "MALE" or "FEMALE"                    |
+| `phone`     | String | No       | Pattern       | VN mobile (0xxxxxxxxx) or 1800/1900           |
+| `address`   | String | No       | Size(max=255) | Patient's address                             |
+| `user_id`   | UUID   | No       | -             | Associated user identifier                    |
 
 **Note:** All fields are optional for updates. Only provided fields will be updated.
 
 #### Response
 
 - **Status Code:** `200 OK`
-- **Body:** Updated PatientResponseDto object
+- **Body:** ApiResponse envelope
 
 #### Example Response
 
 ```json
 {
-  "patient_id": "550e8400-e29b-41d4-a716-446655440001",
-  "full_name": "John Smith",
-  "dob": "1990-05-15T00:00:00.000Z",
-  "gender": "MALE",
-  "phone": "09876543210",
-  "address": "456 Oak Avenue, City, State",
-  "user_id": "550e8400-e29b-41d4-a716-446655440000"
+  "status": 200,
+  "success": true,
+  "message": "Patient updated successfully",
+  "data": {
+    "patient_id": "550e8400-e29b-41d4-a716-446655440001",
+    "full_name": "John Smith",
+    "dob": "1990-05-15T00:00:00.000Z",
+    "gender": "MALE",
+    "phone": "09876543210",
+    "address": "456 Oak Avenue, City, State",
+    "user_id": "550e8400-e29b-41d4-a716-446655440000"
+  }
 }
 ```
 
@@ -235,7 +257,15 @@ Deletes a patient record from the system.
 #### Response
 
 - **Status Code:** `204 No Content`
-- **Body:** Empty
+- **Body:** ApiResponse envelope (no data)
+
+```json
+{
+  "status": 204,
+  "success": true,
+  "message": "Patient deleted successfully"
+}
+```
 
 ---
 
@@ -257,13 +287,16 @@ Searches for patients based on name and/or phone number with pagination support.
 #### Response
 
 - **Status Code:** `200 OK`
-- **Body:** Page object containing matching PatientResponseDto array
+- **Body:** ApiResponse with data list and pagination meta
 
 #### Example Response
 
 ```json
 {
-  "content": [
+  "status": 200,
+  "success": true,
+  "message": "Patients fetched successfully",
+  "data": [
     {
       "patient_id": "550e8400-e29b-41d4-a716-446655440001",
       "full_name": "John Doe",
@@ -274,19 +307,12 @@ Searches for patients based on name and/or phone number with pagination support.
       "user_id": "550e8400-e29b-41d4-a716-446655440000"
     }
   ],
-  "pageable": {
-    "pageNumber": 0,
+  "meta": {
+    "currentPage": 0,
     "pageSize": 10,
-    "sort": {
-      "sorted": false,
-      "unsorted": true
-    }
-  },
-  "totalElements": 1,
-  "totalPages": 1,
-  "last": true,
-  "first": true,
-  "numberOfElements": 1
+    "totalPages": 1,
+    "totalItems": 1
+  }
 }
 ```
 
@@ -300,7 +326,7 @@ Searches for patients based on name and/or phone number with pagination support.
   "full_name": "String",
   "dob": "Date (ISO 8601)",
   "gender": "MALE | FEMALE",
-  "phone": "String (10 digits starting with 0)",
+  "phone": "String (valid phone number)",
   "address": "String",
   "user_id": "UUID"
 }
@@ -313,7 +339,7 @@ Searches for patients based on name and/or phone number with pagination support.
   "full_name": "String (required)",
   "dob": "Date (required, ISO 8601)",
   "gender": "MALE | FEMALE (required)",
-  "phone": "String (required, 10 digits starting with 0)",
+  "phone": "String (required, valid phone number)",
   "address": "String (required)",
   "user_id": "UUID (required)"
 }
@@ -326,7 +352,7 @@ Searches for patients based on name and/or phone number with pagination support.
   "full_name": "String (optional)",
   "dob": "Date (optional, ISO 8601)",
   "gender": "MALE | FEMALE (optional)",
-  "phone": "String (optional, 10 digits starting with 0)",
+  "phone": "String (optional, valid phone number)",
   "address": "String (optional)",
   "user_id": "UUID (optional)"
 }
@@ -336,14 +362,22 @@ Searches for patients based on name and/or phone number with pagination support.
 
 ### Phone Number Format
 
-- Must match pattern: `^0[0-9]{9}$`
-- Exactly 10 digits
-- Must start with 0
-- Examples: `0123456789`, `0987654321`
+- Must satisfy: regex pattern
+- Regex:
+
+```text
+^(?:\+84|0)(?:3[2-9]|5[25689]|7[06-9]|8[1-9]|9[0-9])[0-9]{7}$|^(?:1800|1900)[0-9]{4,6}$
+```
+
+- Effective accepted formats:
+  - Local mobile numbers: `0` + valid VN prefix + 8 digits (total 10)
+  - Special service numbers: `1800`/`1900` + 4–6 digits (8–10 total)
+- Examples: `0912345678`, `0987654321`, `0321234567`, `18001234`, `1900123456`
 
 ### Date Format
 
 - ISO 8601 format: `YYYY-MM-DDTHH:mm:ss.sssZ`
+- Must be in the past for create/update
 - Example: `1990-05-15T00:00:00.000Z`
 
 ### Gender Values

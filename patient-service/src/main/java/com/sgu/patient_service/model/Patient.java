@@ -6,6 +6,8 @@ import java.util.UUID;
 import com.sgu.patient_service.enums.PatientGender;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -27,6 +29,7 @@ public class Patient {
     private Date dob;
 
     @NotNull
+    @Enumerated(EnumType.STRING)
     private PatientGender gender;
 
     @NotNull

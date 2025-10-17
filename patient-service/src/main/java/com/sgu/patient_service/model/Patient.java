@@ -1,6 +1,6 @@
 package com.sgu.patient_service.model;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.UUID;
 
 import com.sgu.patient_service.enums.PatientGender;
@@ -26,7 +26,7 @@ public class Patient {
     private String full_name;
 
     @NotNull
-    private Date dob;
+    private LocalDate dob;
 
     @NotNull
     @Enumerated(EnumType.STRING)

@@ -1,6 +1,6 @@
 package com.sgu.patient_service.dto.request;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.UUID;
 
 import com.sgu.patient_service.enums.PatientGender;
@@ -20,7 +20,7 @@ public class PatientCreateRequest {
 
     @NotNull(message = "Date of birth is required")
     @Past(message = "Date of birth must be in the past")
-    private Date dob;
+    private LocalDate dob;
 
     @NotNull(message = "Gender is required")
     private PatientGender gender;

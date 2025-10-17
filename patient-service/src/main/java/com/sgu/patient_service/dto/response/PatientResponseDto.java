@@ -1,6 +1,6 @@
 package com.sgu.patient_service.dto.response;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.UUID;
 
 import com.sgu.patient_service.enums.PatientGender;
@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 public class PatientResponseDto {
     private UUID patient_id;
     private String full_name;
-    private Date dob;
+    private LocalDate dob;
     private PatientGender gender;
     private String phone;
     private String address;

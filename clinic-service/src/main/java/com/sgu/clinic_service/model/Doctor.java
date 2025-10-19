@@ -1,5 +1,6 @@
 package com.sgu.clinic_service.model;
 
+import com.sgu.clinic_service.constant.DoctorStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -15,20 +16,26 @@ import java.util.UUID;
 public class Doctor {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID doctor_id;
+    @Column(name = "doctor_id")
+    private UUID id;
 
-    @Column(nullable = false)
-    private UUID clinic_id;
+    @Column(name = "clinic_id", nullable = false)
+    private UUID clinicId;
 
-    @Column(nullable = false)
-    private String full_name;
+    @Column(name = "full_name", nullable = false)
+    private String fullName;
 
-    @Column(nullable = false)
-    private UUID specialty_id;
+    @Column(name = "specialty_id", nullable = false)
+    private UUID specialtyId;
 
-    @Column(nullable = false)
-    private String phone;
+    @Column(name = "phone_number", nullable = false)
+    private String phoneNumber;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    @Builder.Default
+    private DoctorStatus status = DoctorStatus.ACTIVE;
 }

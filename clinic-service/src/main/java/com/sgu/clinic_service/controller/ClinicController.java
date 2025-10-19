@@ -32,7 +32,7 @@ public class ClinicController {
         ApiResponse<List<ClinicResponseDto>> response = ApiResponse.<List<ClinicResponseDto>>builder()
                 .status(HttpStatus.OK.value())
                 .success(true)
-                .message(result.getData().isEmpty() ? "No clinics found" : "Clinics retrieved successfully")
+                .message("Clinics retrieved successfully")
                 .data(result.getData())
                 .meta(result.getMeta())
                 .build();

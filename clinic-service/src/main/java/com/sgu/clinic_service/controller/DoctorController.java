@@ -1,0 +1,143 @@
+package com.sgu.clinic_service.controller;
+
+import com.sgu.clinic_service.constant.DoctorStatus;
+import com.sgu.clinic_service.dto.request.doctor.DoctorCreateRequestDto;
+import com.sgu.clinic_service.dto.request.doctor.DoctorUpdateRequestDto;
+import com.sgu.clinic_service.dto.response.common.ApiResponse;
+import com.sgu.clinic_service.dto.response.common.PaginationResponse;
+import com.sgu.clinic_service.dto.response.doctor.DoctorResponseDto;
+import com.sgu.clinic_service.service.DoctorService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/api/doctors")
+@RequiredArgsConstructor
+public class DoctorController {
+    private final DoctorService doctorService;
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<DoctorResponseDto>>> getAllDoctorsByClinicId(
+            @RequestParam UUID clinicId,
+            @RequestParam(required = false) DoctorStatus status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        PaginationResponse<DoctorResponseDto> result;
+
+        if (status != null) {
+            result = doctorService.getAllDoctorsByClinicIdAndStatus(clinicId, status, page, size);
+        } else {
+            result = doctorService.getAllDoctorsByClinicId(clinicId, page, size);
+        }
+
+        ApiResponse<List<DoctorResponseDto>> response = ApiResponse.<List<DoctorResponseDto>>builder()
+                .status(HttpStatus.OK.value())
+                .success(true)
+                .message("Doctors retrieved successfully")
+                .data(result.getData())
+                .meta(result.getMeta())
+                .build();
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(response);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<DoctorResponseDto>> getDoctorById(
+            @PathVariable UUID id
+    ) {
+        DoctorResponseDto doctor = doctorService.getDoctorById(id);
+
+        ApiResponse<DoctorResponseDto> response = ApiResponse.<DoctorResponseDto>builder()
+                .status(HttpStatus.OK.value())
+                .success(true)
+                .message("Doctor retrieved successfully")
+                .data(doctor)
+                .build();
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(response);
+    }
+
+    @PostMapping
+    public ResponseEntity<ApiResponse<DoctorResponseDto>> createDoctor(
+            @Valid @RequestBody DoctorCreateRequestDto dto
+    ) {
+        DoctorResponseDto createdDoctor = doctorService.createDoctor(dto);
+
+        ApiResponse<DoctorResponseDto> response = ApiResponse.<DoctorResponseDto>builder()
+                .status(HttpStatus.CREATED.value())
+                .success(true)
+                .message("Doctor created successfully")
+                .data(createdDoctor)
+                .build();
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(response);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<DoctorResponseDto>> updateDoctor(
+            @PathVariable UUID id,
+            @Valid @RequestBody DoctorUpdateRequestDto dto
+    ) {
+        DoctorResponseDto updatedDoctor = doctorService.updateDoctor(id, dto);
+
+        ApiResponse<DoctorResponseDto> response = ApiResponse.<DoctorResponseDto>builder()
+                .status(HttpStatus.OK.value())
+                .success(true)
+                .message("Doctor updated successfully")
+                .data(updatedDoctor)
+                .build();
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(response);
+    }
+
+    @PatchMapping("/{id}/lock")
+    public ResponseEntity<ApiResponse<DoctorResponseDto>> lockDoctor(
+            @PathVariable UUID id
+    ) {
+        DoctorResponseDto doctor = doctorService.lockDoctor(id);
+
+        ApiResponse<DoctorResponseDto> response = ApiResponse.<DoctorResponseDto>builder()
+                .status(HttpStatus.OK.value())
+                .success(true)
+                .message("Doctor locked successfully")
+                .data(doctor)
+                .build();
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(response);
+    }
+
+    @PatchMapping("/{id}/unlock")
+    public ResponseEntity<ApiResponse<DoctorResponseDto>> unlockDoctor(
+            @PathVariable UUID id
+    ) {
+        DoctorResponseDto doctor = doctorService.unlockDoctor(id);
+
+        ApiResponse<DoctorResponseDto> response = ApiResponse.<DoctorResponseDto>builder()
+                .status(HttpStatus.OK.value())
+                .success(true)
+                .message("Doctor unlocked successfully")
+                .data(doctor)
+                .build();
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(response);
+    }
+}

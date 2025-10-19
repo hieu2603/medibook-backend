@@ -8,11 +8,11 @@ import com.sgu.clinic_service.dto.response.common.PaginationResponse;
 import java.util.UUID;
 
 public interface ClinicService {
-    PaginationResponse<ClinicResponseDto> getClinics(String name, int page, int size);
+    PaginationResponse<ClinicResponseDto> getAllClinics(String name, int page, int size);
 
     ClinicResponseDto getClinicById(UUID id);
 
-    ClinicResponseDto createClinic(ClinicCreateRequestDto requestDto);
+    ClinicResponseDto createClinic(ClinicCreateRequestDto dto);
 
-    ClinicResponseDto updateClinic(UUID id, ClinicUpdateRequestDto requestDto);
+    ClinicResponseDto updateClinic(UUID id, ClinicUpdateRequestDto dto);
 }

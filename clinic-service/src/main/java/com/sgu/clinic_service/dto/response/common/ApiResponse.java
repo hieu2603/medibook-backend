@@ -9,8 +9,12 @@ import lombok.Data;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApiResponse<T> {
     private int status;
-    private boolean success;
+
+    @Builder.Default
+    private boolean success = true;
+
     private String message;
+
     private T data;
     private PaginationMeta meta;
 }

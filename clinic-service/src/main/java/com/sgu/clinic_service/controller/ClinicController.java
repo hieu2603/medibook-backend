@@ -27,11 +27,10 @@ public class ClinicController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        PaginationResponse<ClinicResponseDto> result = clinicService.getClinics(name, page, size);
+        PaginationResponse<ClinicResponseDto> result = clinicService.getAllClinics(name, page, size);
 
         ApiResponse<List<ClinicResponseDto>> response = ApiResponse.<List<ClinicResponseDto>>builder()
                 .status(HttpStatus.OK.value())
-                .success(true)
                 .message("Clinics retrieved successfully")
                 .data(result.getData())
                 .meta(result.getMeta())
@@ -50,7 +49,6 @@ public class ClinicController {
 
         ApiResponse<ClinicResponseDto> response = ApiResponse.<ClinicResponseDto>builder()
                 .status(HttpStatus.OK.value())
-                .success(true)
                 .message("Clinic retrieved successfully")
                 .data(clinic)
                 .build();
@@ -68,7 +66,6 @@ public class ClinicController {
 
         ApiResponse<ClinicResponseDto> response = ApiResponse.<ClinicResponseDto>builder()
                 .status(HttpStatus.CREATED.value())
-                .success(true)
                 .message("Clinic created successfully")
                 .data(createdClinic)
                 .build();
@@ -87,7 +84,6 @@ public class ClinicController {
 
         ApiResponse<ClinicResponseDto> response = ApiResponse.<ClinicResponseDto>builder()
                 .status(HttpStatus.OK.value())
-                .success(true)
                 .message("Clinic updated successfully")
                 .data(updatedClinic)
                 .build();

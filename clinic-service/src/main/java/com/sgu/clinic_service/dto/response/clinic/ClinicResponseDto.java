@@ -13,8 +13,8 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class ClinicResponseDto {
-    private UUID clinic_id;
-    private String clinic_name;
+    private UUID id;
+    private String clinicName;
     private String phone;
     private String address;
     private BigDecimal latitude;

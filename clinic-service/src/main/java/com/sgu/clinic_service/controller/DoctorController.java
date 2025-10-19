@@ -25,7 +25,7 @@ public class DoctorController {
     @GetMapping
     public ResponseEntity<ApiResponse<List<DoctorResponseDto>>> getAllDoctorsByClinicId(
             @RequestParam UUID clinicId,
-            @RequestParam(required = false) DoctorStatus status,
+            @RequestParam(defaultValue = "ACTIVE", required = false) DoctorStatus status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
@@ -39,7 +39,6 @@ public class DoctorController {
 
         ApiResponse<List<DoctorResponseDto>> response = ApiResponse.<List<DoctorResponseDto>>builder()
                 .status(HttpStatus.OK.value())
-                .success(true)
                 .message("Doctors retrieved successfully")
                 .data(result.getData())
                 .meta(result.getMeta())
@@ -58,7 +57,6 @@ public class DoctorController {
 
         ApiResponse<DoctorResponseDto> response = ApiResponse.<DoctorResponseDto>builder()
                 .status(HttpStatus.OK.value())
-                .success(true)
                 .message("Doctor retrieved successfully")
                 .data(doctor)
                 .build();
@@ -76,7 +74,6 @@ public class DoctorController {
 
         ApiResponse<DoctorResponseDto> response = ApiResponse.<DoctorResponseDto>builder()
                 .status(HttpStatus.CREATED.value())
-                .success(true)
                 .message("Doctor created successfully")
                 .data(createdDoctor)
                 .build();
@@ -95,7 +92,6 @@ public class DoctorController {
 
         ApiResponse<DoctorResponseDto> response = ApiResponse.<DoctorResponseDto>builder()
                 .status(HttpStatus.OK.value())
-                .success(true)
                 .message("Doctor updated successfully")
                 .data(updatedDoctor)
                 .build();
@@ -113,7 +109,6 @@ public class DoctorController {
 
         ApiResponse<DoctorResponseDto> response = ApiResponse.<DoctorResponseDto>builder()
                 .status(HttpStatus.OK.value())
-                .success(true)
                 .message("Doctor locked successfully")
                 .data(doctor)
                 .build();
@@ -131,7 +126,6 @@ public class DoctorController {
 
         ApiResponse<DoctorResponseDto> response = ApiResponse.<DoctorResponseDto>builder()
                 .status(HttpStatus.OK.value())
-                .success(true)
                 .message("Doctor unlocked successfully")
                 .data(doctor)
                 .build();

@@ -26,7 +26,6 @@ public class SpecialtyController {
 
         ApiResponse<List<SpecialtyResponseDto>> response = ApiResponse.<List<SpecialtyResponseDto>>builder()
                 .status(HttpStatus.OK.value())
-                .success(true)
                 .message("Specialties retrieved successfully")
                 .data(specialties)
                 .build();
@@ -44,7 +43,6 @@ public class SpecialtyController {
 
         ApiResponse<SpecialtyResponseDto> response = ApiResponse.<SpecialtyResponseDto>builder()
                 .status(HttpStatus.OK.value())
-                .success(true)
                 .message("Specialty retrieved successfully")
                 .data(specialty)
                 .build();
@@ -62,7 +60,6 @@ public class SpecialtyController {
 
         ApiResponse<SpecialtyResponseDto> response = ApiResponse.<SpecialtyResponseDto>builder()
                 .status(HttpStatus.CREATED.value())
-                .success(true)
                 .message("Specialty created successfully")
                 .data(createdSpecialty)
                 .build();
@@ -81,7 +78,6 @@ public class SpecialtyController {
 
         ApiResponse<SpecialtyResponseDto> response = ApiResponse.<SpecialtyResponseDto>builder()
                 .status(HttpStatus.OK.value())
-                .success(true)
                 .message("Specialty updated successfully")
                 .data(updatedSpecialty)
                 .build();

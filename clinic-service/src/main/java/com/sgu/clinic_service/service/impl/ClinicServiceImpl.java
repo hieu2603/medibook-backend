@@ -26,7 +26,7 @@ public class ClinicServiceImpl implements ClinicService {
     private final ClinicRepository clinicRepository;
 
     @Override
-    public PaginationResponse<ClinicResponseDto> getClinics(
+    public PaginationResponse<ClinicResponseDto> getAllClinics(
             String name, int page, int size
     ) {
         int pageIndex = (page <= 0) ? 0 : page - 1;
@@ -63,17 +63,8 @@ public class ClinicServiceImpl implements ClinicService {
     }
 
     @Override
-    public ClinicResponseDto createClinic(ClinicCreateRequestDto requestDto) {
-        Clinic clinic = Clinic.builder()
-                .clinicName(requestDto.getClinicName())
-                .phone(requestDto.getPhone())
-                .address(requestDto.getAddress())
-                .latitude(requestDto.getLatitude())
-                .longitude(requestDto.getLongitude())
-                .description(requestDto.getDescription())
-                .price(requestDto.getPrice())
-                .userId(requestDto.getUserId())
-                .build();
+    public ClinicResponseDto createClinic(ClinicCreateRequestDto dto) {
+        Clinic clinic = ClinicMapper.toEntity(dto);
 
         Clinic createdClinic = clinicRepository.save(clinic);
 
@@ -81,31 +72,11 @@ public class ClinicServiceImpl implements ClinicService {
     }
 
     @Override
-    public ClinicResponseDto updateClinic(UUID id, ClinicUpdateRequestDto requestDto) {
+    public ClinicResponseDto updateClinic(UUID id, ClinicUpdateRequestDto dto) {
         Clinic clinic = clinicRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Clinic not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Clinic not found"));
 
-        if (requestDto.getClinicName() != null) {
-            clinic.setClinicName(requestDto.getClinicName());
-        }
-        if (requestDto.getPhone() != null) {
-            clinic.setPhone(requestDto.getPhone());
-        }
-        if (requestDto.getAddress() != null) {
-            clinic.setAddress(requestDto.getAddress());
-        }
-        if (requestDto.getLatitude() != null) {
-            clinic.setLatitude(requestDto.getLatitude());
-        }
-        if (requestDto.getLongitude() != null) {
-            clinic.setLongitude(requestDto.getLongitude());
-        }
-        if (requestDto.getDescription() != null) {
-            clinic.setDescription(requestDto.getDescription());
-        }
-        if (requestDto.getPrice() != null) {
-            clinic.setPrice(requestDto.getPrice());
-        }
+        ClinicMapper.updateEntity(clinic, dto);
 
         Clinic updatedClinic = clinicRepository.save(clinic);
 

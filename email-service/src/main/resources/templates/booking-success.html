@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Booking Success</title>
+</head>
+<body style="font-family: Arial, sans-serif; background-color:#f9f9f9; padding:20px;">
+<div style="max-width:600px; margin:auto; background-color:#ffffff; border-radius:8px; padding:20px;">
+    <h2 style="color:#333;">Xin chào, <span th:text="${patientName}">Full Name</span> 👋</h2>
+
+    <p>Bạn đã <b>đặt lịch khám thành công</b> tại <b>Medibook</b>.</p>
+    <p>Thông tin chi tiết của lịch khám:</p>
+
+    <div style="margin:20px 0; background-color:#f9f9f9; border-radius:6px; padding:15px;">
+        <p><b>Mã đặt lịch:</b>
+            <span style="font-family: monospace; background:#f0f0f0; padding:4px 8px; border-radius:4px;"
+                  th:text="${appointmentId}">Appointment ID</span>
+        </p>
+        <p><b>Ngày khám:</b> <span th:text="${date}">01/01/1970</span></p>
+        <p><b>Thời gian:</b>
+            <span th:text="${startTime}">00:00</span> -
+            <span th:text="${endTime}">00:00</span>
+        </p>
+        <p><b>Bác sĩ:</b> <span th:text="${doctorName}">Doctor Name</span></p>
+        <p><b>Phòng khám:</b> <span th:text="${clinicName}">Clinic Name</span></p>
+    </div>
+
+    <p>Vui lòng đến đúng giờ và mang theo giấy tờ tùy thân khi đến khám.</p>
+
+    <p style="margin-top:20px; color:#666; font-size:12px;">
+        Nếu bạn không thực hiện việc đặt lịch này, vui lòng liên hệ với bộ phận hỗ trợ của <b>Medibook</b>.
+    </p>
+</div>
+</body>
+</html>

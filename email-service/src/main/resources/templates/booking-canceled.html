@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Booking Canceled</title>
+</head>
+<body style="font-family: Arial, sans-serif; background-color:#f9f9f9; padding:20px;">
+<div style="max-width:600px; margin:auto; background-color:#ffffff; border-radius:8px; padding:20px;">
+    <h2 style="color:#333;">Xin chào, <span th:text="${patientName}">Full Name</span> 👋</h2>
+
+    <p>Rất tiếc, lịch khám của bạn tại <b>Medibook</b> đã bị <span style="color:#d9534f; font-weight:bold;">hủy</span>.
+    </p>
+    <p>Thông tin chi tiết của lịch khám đã bị hủy:</p>
+
+    <div style="margin:20px 0; background-color:#f9f9f9; border-radius:6px; padding:15px;">
+        <p><b>Mã đặt lịch:</b>
+            <span style="font-family: monospace; background:#f0f0f0; padding:4px 8px; border-radius:4px;"
+                  th:text="${appointmentId}">Appointment ID</span>
+        </p>
+        <p><b>Ngày khám:</b> <span th:text="${date}">01/01/1970</span></p>
+        <p><b>Thời gian:</b>
+            <span th:text="${startTime}">09:00</span> -
+            <span th:text="${endTime}">10:00</span>
+        </p>
+        <p><b>Bác sĩ:</b> <span th:text="${doctorName}">Doctor Name</span></p>
+        <p><b>Phòng khám:</b> <span th:text="${clinic}">Clinic Name</span></p>
+        <p th:if="${reason != null}">
+            <b>Lý do hủy:</b> <span th:text="${reason}">Reason</span>
+        </p>
+    </div>
+
+    <p>Chúng tôi rất tiếc về sự bất tiện này và hy vọng được hỗ trợ bạn đặt lại lịch khám trong thời gian sớm nhất.</p>
+
+    <p style="margin-top:20px; color:#666; font-size:12px;">
+        Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email này hoặc liên hệ với bộ phận hỗ trợ của
+        <b>Medibook</b>.
+    </p>
+</div>
+</body>
+</html>

@@ -96,8 +96,8 @@ Creates a new appointment.
   "patient_id": "550e8400-e29b-41d4-a716-446655440000",
   "doctor_id": "550e8400-e29b-41d4-a716-446655440001",
   "clinic_id": "550e8400-e29b-41d4-a716-446655440002",
-  "start_time": "2025-12-01T09:00:00Z",
-  "end_time": "2025-12-01T09:30:00Z"
+  "start_time": "2025-12-01T09:00:00",
+  "end_time": "2025-12-01T09:30:00"
 }
 ```
 
@@ -118,8 +118,8 @@ Creates a new appointment.
     "patient_id": "550e8400-e29b-41d4-a716-446655440000",
     "doctor_id": "550e8400-e29b-41d4-a716-446655440001",
     "clinic_id": "550e8400-e29b-41d4-a716-446655440002",
-    "start_time": "2025-12-01T09:00:00Z",
-    "end_time": "2025-12-01T09:30:00Z",
+    "start_time": "2025-12-01T09:00:00",
+    "end_time": "2025-12-01T09:30:00",
     "status": "PENDING"
   }
 }
@@ -156,8 +156,8 @@ Retrieves a specific appointment.
     "patient_id": "550e8400-e29b-41d4-a716-446655440000",
     "doctor_id": "550e8400-e29b-41d4-a716-446655440001",
     "clinic_id": "550e8400-e29b-41d4-a716-446655440002",
-    "start_time": "2025-12-01T09:00:00Z",
-    "end_time": "2025-12-01T09:30:00Z",
+    "start_time": "2025-12-01T09:00:00",
+    "end_time": "2025-12-01T09:30:00",
     "status": "PENDING"
   }
 }
@@ -205,8 +205,8 @@ Retrieves all appointments with optional filtering and pagination support.
       "patient_id": "550e8400-e29b-41d4-a716-446655440000",
       "doctor_id": "550e8400-e29b-41d4-a716-446655440001",
       "clinic_id": "550e8400-e29b-41d4-a716-446655440002",
-      "start_time": "2025-12-01T09:00:00Z",
-      "end_time": "2025-12-01T09:30:00Z",
+      "start_time": "2025-12-01T09:00:00",
+      "end_time": "2025-12-01T09:30:00",
       "status": "PENDING"
     }
   ],
@@ -263,8 +263,8 @@ Searches for appointments by filters with pagination.
       "patient_id": "550e8400-e29b-41d4-a716-446655440000",
       "doctor_id": "550e8400-e29b-41d4-a716-446655440001",
       "clinic_id": "550e8400-e29b-41d4-a716-446655440002",
-      "start_time": "2025-12-01T09:00:00Z",
-      "end_time": "2025-12-01T09:30:00Z",
+      "start_time": "2025-12-01T09:00:00",
+      "end_time": "2025-12-01T09:30:00",
       "status": "PENDING"
     },
     {
@@ -272,8 +272,8 @@ Searches for appointments by filters with pagination.
       "patient_id": "550e8400-e29b-41d4-a716-446655440003",
       "doctor_id": "550e8400-e29b-41d4-a716-446655440001",
       "clinic_id": "550e8400-e29b-41d4-a716-446655440002",
-      "start_time": "2025-12-01T10:00:00Z",
-      "end_time": "2025-12-01T10:30:00Z",
+      "start_time": "2025-12-01T10:00:00",
+      "end_time": "2025-12-01T10:30:00",
       "status": "CONFIRMED"
     }
   ],
@@ -348,8 +348,8 @@ Note: All fields are optional; only provided fields will be updated.
 {
   "doctor_id": "550e8400-e29b-41d4-a716-446655440001",
   "clinic_id": "550e8400-e29b-41d4-a716-446655440002",
-  "start_time": "2025-12-01T14:00:00Z",
-  "end_time": "2025-12-01T14:30:00Z"
+  "start_time": "2025-12-01T14:00:00",
+  "end_time": "2025-12-01T14:30:00"
 }
 ```
 
@@ -370,8 +370,8 @@ Note: All fields are optional; only provided fields will be updated.
     "patient_id": "550e8400-e29b-41d4-a716-446655440000",
     "doctor_id": "550e8400-e29b-41d4-a716-446655440001",
     "clinic_id": "550e8400-e29b-41d4-a716-446655440002",
-    "start_time": "2025-12-01T14:00:00Z",
-    "end_time": "2025-12-01T14:30:00Z",
+    "start_time": "2025-12-01T14:00:00",
+    "end_time": "2025-12-01T14:30:00",
     "status": "PENDING"
   }
 }
@@ -404,8 +404,8 @@ Reschedules an appointment.
 ```json
 {
   "doctor_id": "550e8400-e29b-41d4-a716-446655440001",
-  "start_time": "2025-12-02T09:00:00Z",
-  "end_time": "2025-12-02T09:30:00Z"
+  "start_time": "2025-12-02T09:00:00",
+  "end_time": "2025-12-02T09:30:00"
 }
 ```
 
@@ -426,8 +426,8 @@ Reschedules an appointment.
     "patient_id": "550e8400-e29b-41d4-a716-446655440000",
     "doctor_id": "550e8400-e29b-41d4-a716-446655440001",
     "clinic_id": "550e8400-e29b-41d4-a716-446655440002",
-    "start_time": "2025-12-02T09:00:00Z",
-    "end_time": "2025-12-02T09:30:00Z",
+    "start_time": "2025-12-02T09:00:00",
+    "end_time": "2025-12-02T09:30:00",
     "status": "PENDING"
   }
 }
@@ -478,8 +478,8 @@ Updates appointment status.
     "patient_id": "550e8400-e29b-41d4-a716-446655440000",
     "doctor_id": "550e8400-e29b-41d4-a716-446655440001",
     "clinic_id": "550e8400-e29b-41d4-a716-446655440002",
-    "start_time": "2025-12-01T09:00:00Z",
-    "end_time": "2025-12-01T09:30:00Z",
+    "start_time": "2025-12-01T09:00:00",
+    "end_time": "2025-12-01T09:30:00",
     "status": "CONFIRMED"
   }
 }
@@ -518,8 +518,8 @@ Change status without body.
     "patient_id": "550e8400-e29b-41d4-a716-446655440000",
     "doctor_id": "550e8400-e29b-41d4-a716-446655440001",
     "clinic_id": "550e8400-e29b-41d4-a716-446655440002",
-    "start_time": "2025-12-01T09:00:00Z",
-    "end_time": "2025-12-01T09:30:00Z",
+    "start_time": "2025-12-01T09:00:00",
+    "end_time": "2025-12-01T09:30:00",
     "status": "CONFIRMED"
   }
 }
@@ -537,8 +537,8 @@ Change status without body.
     "patient_id": "550e8400-e29b-41d4-a716-446655440000",
     "doctor_id": "550e8400-e29b-41d4-a716-446655440001",
     "clinic_id": "550e8400-e29b-41d4-a716-446655440002",
-    "start_time": "2025-12-01T09:00:00Z",
-    "end_time": "2025-12-01T09:30:00Z",
+    "start_time": "2025-12-01T09:00:00",
+    "end_time": "2025-12-01T09:30:00",
     "status": "CANCELLED"
   }
 }
@@ -556,8 +556,8 @@ Change status without body.
     "patient_id": "550e8400-e29b-41d4-a716-446655440000",
     "doctor_id": "550e8400-e29b-41d4-a716-446655440001",
     "clinic_id": "550e8400-e29b-41d4-a716-446655440002",
-    "start_time": "2025-12-01T09:00:00Z",
-    "end_time": "2025-12-01T09:30:00Z",
+    "start_time": "2025-12-01T09:00:00",
+    "end_time": "2025-12-01T09:30:00",
     "status": "COMPLETED"
   }
 }
@@ -626,8 +626,8 @@ Uses standard pagination (`page`, `size`, `sort`).
       "patient_id": "550e8400-e29b-41d4-a716-446655440000",
       "doctor_id": "550e8400-e29b-41d4-a716-446655440001",
       "clinic_id": "550e8400-e29b-41d4-a716-446655440002",
-      "start_time": "2025-12-01T09:00:00Z",
-      "end_time": "2025-12-01T09:30:00Z",
+      "start_time": "2025-12-01T09:00:00",
+      "end_time": "2025-12-01T09:30:00",
       "status": "PENDING"
     },
     {
@@ -635,8 +635,8 @@ Uses standard pagination (`page`, `size`, `sort`).
       "patient_id": "550e8400-e29b-41d4-a716-446655440000",
       "doctor_id": "550e8400-e29b-41d4-a716-446655440003",
       "clinic_id": "550e8400-e29b-41d4-a716-446655440004",
-      "start_time": "2025-12-02T10:00:00Z",
-      "end_time": "2025-12-02T10:30:00Z",
+      "start_time": "2025-12-02T10:00:00",
+      "end_time": "2025-12-02T10:30:00",
       "status": "CONFIRMED"
     }
   ],
@@ -685,8 +685,8 @@ Uses standard pagination (`page`, `size`, `sort`).
       "patient_id": "550e8400-e29b-41d4-a716-446655440000",
       "doctor_id": "550e8400-e29b-41d4-a716-446655440001",
       "clinic_id": "550e8400-e29b-41d4-a716-446655440002",
-      "start_time": "2025-12-01T09:00:00Z",
-      "end_time": "2025-12-01T09:30:00Z",
+      "start_time": "2025-12-01T09:00:00",
+      "end_time": "2025-12-01T09:30:00",
       "status": "PENDING"
     },
     {
@@ -694,8 +694,8 @@ Uses standard pagination (`page`, `size`, `sort`).
       "patient_id": "550e8400-e29b-41d4-a716-446655440003",
       "doctor_id": "550e8400-e29b-41d4-a716-446655440001",
       "clinic_id": "550e8400-e29b-41d4-a716-446655440002",
-      "start_time": "2025-12-01T14:00:00Z",
-      "end_time": "2025-12-01T14:30:00Z",
+      "start_time": "2025-12-01T14:00:00",
+      "end_time": "2025-12-01T14:30:00",
       "status": "CONFIRMED"
     }
   ],

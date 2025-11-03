@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Notification Realtime Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <style>
+        #messages { font-family: Arial; margin-top: 20px; }
+        .msg { padding: 5px; border-bottom: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+    <h2>Realtime Notification Test</h2>
+    <div id="messages"></div>
+    <button id="clearBtn">Clear Messages</button>
+
+    <script>
+        const userId = "123e4567-e89b-12d3-a456-426614174012"; 
+        let stompClient = null;
+        let subscribed = false;
+
+        function connect() {
+            const socket = new SockJS('http://localhost:8089/ws');
+            stompClient = Stomp.over(socket);
+
+            // Tắt log debug STOMP
+            stompClient.debug = null;
+
+            stompClient.connect({}, function(frame) {
+                console.log('✅ Connected: ' + frame);
+
+                // Subscribe chỉ 1 lần
+                if (!subscribed) {
+                    stompClient.subscribe('/topic/notifications/' + userId, function(notification) {
+                        const msg = JSON.parse(notification.body);
+                        const div = document.getElementById('messages');
+
+                        const p = document.createElement('div');
+                        p.className = 'msg';
+                        p.innerHTML = `<b>${msg.title}:</b> ${msg.message}`;
+                        div.appendChild(p);
+
+                        console.log('🔔 Received notification:', msg);
+                    });
+                    subscribed = true;
+                }
+            });
+
+            // Nếu connection bị lỗi, thử reconnect sau 5s
+            stompClient.onclose = function() {
+                console.log('⚠️ Connection closed. Reconnecting in 5s...');
+                subscribed = false;
+                setTimeout(connect, 5000);
+            };
+        }
+
+        // Bắt đầu connect
+        connect();
+
+        // Nút xóa messages
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            document.getElementById('messages').innerHTML = '';
+        });
+    </script>
+</body>
+</html>

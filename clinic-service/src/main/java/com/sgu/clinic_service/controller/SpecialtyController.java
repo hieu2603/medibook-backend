@@ -2,9 +2,9 @@ package com.sgu.clinic_service.controller;
 
 import com.sgu.clinic_service.dto.request.specialty.SpecialtyCreateRequestDto;
 import com.sgu.clinic_service.dto.request.specialty.SpecialtyUpdateRequestDto;
-import com.sgu.clinic_service.dto.response.common.ApiResponse;
 import com.sgu.clinic_service.dto.response.specialty.SpecialtyResponseDto;
 import com.sgu.clinic_service.service.SpecialtyService;
+import com.sgu.common.dto.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -54,9 +54,10 @@ public class SpecialtyController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<SpecialtyResponseDto>> createSpecialty(
-            @Valid @RequestBody SpecialtyCreateRequestDto dto
+            @Valid @RequestBody SpecialtyCreateRequestDto dto,
+            @RequestHeader("X-User-Role") String role
     ) {
-        SpecialtyResponseDto createdSpecialty = specialtyService.createSpecialty(dto);
+        SpecialtyResponseDto createdSpecialty = specialtyService.createSpecialty(dto, role);
 
         ApiResponse<SpecialtyResponseDto> response = ApiResponse.<SpecialtyResponseDto>builder()
                 .status(HttpStatus.CREATED.value())
@@ -72,9 +73,10 @@ public class SpecialtyController {
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<SpecialtyResponseDto>> updateSpecialty(
             @PathVariable UUID id,
-            @Valid @RequestBody SpecialtyUpdateRequestDto dto
+            @Valid @RequestBody SpecialtyUpdateRequestDto dto,
+            @RequestHeader("X-User-Role") String role
     ) {
-        SpecialtyResponseDto updatedSpecialty = specialtyService.updateSpecialty(id, dto);
+        SpecialtyResponseDto updatedSpecialty = specialtyService.updateSpecialty(id, dto, role);
 
         ApiResponse<SpecialtyResponseDto> response = ApiResponse.<SpecialtyResponseDto>builder()
                 .status(HttpStatus.OK.value())

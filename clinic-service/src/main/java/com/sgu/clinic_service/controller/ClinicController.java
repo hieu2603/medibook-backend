@@ -3,11 +3,12 @@ package com.sgu.clinic_service.controller;
 import com.sgu.clinic_service.dto.request.clinic.ClinicCreateRequestDto;
 import com.sgu.clinic_service.dto.request.clinic.ClinicUpdateRequestDto;
 import com.sgu.clinic_service.dto.response.clinic.ClinicResponseDto;
-import com.sgu.clinic_service.dto.response.common.ApiResponse;
-import com.sgu.clinic_service.dto.response.common.PaginationResponse;
 import com.sgu.clinic_service.service.ClinicService;
+import com.sgu.common.dto.ApiResponse;
+import com.sgu.common.dto.PaginationResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,16 +19,22 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/clinics")
 @RequiredArgsConstructor
+@Slf4j
 public class ClinicController {
     private final ClinicService clinicService;
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<ClinicResponseDto>>> getClinics(
             @RequestParam(required = false) String name,
-            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(required = false) Double latitude,
+            @RequestParam(required = false) Double longitude,
+            @RequestParam(required = false) Double radius,
+            @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        PaginationResponse<ClinicResponseDto> result = clinicService.getAllClinics(name, page, size);
+        PaginationResponse<ClinicResponseDto> result = clinicService.getClinics(
+                name, latitude, longitude, radius, page, size
+        );
 
         ApiResponse<List<ClinicResponseDto>> response = ApiResponse.<List<ClinicResponseDto>>builder()
                 .status(HttpStatus.OK.value())
@@ -60,9 +67,9 @@ public class ClinicController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<ClinicResponseDto>> createClinic(
-            @Valid @RequestBody ClinicCreateRequestDto requestDto
+            @Valid @RequestBody ClinicCreateRequestDto dto
     ) {
-        ClinicResponseDto createdClinic = clinicService.createClinic(requestDto);
+        ClinicResponseDto createdClinic = clinicService.createClinic(dto);
 
         ApiResponse<ClinicResponseDto> response = ApiResponse.<ClinicResponseDto>builder()
                 .status(HttpStatus.CREATED.value())
@@ -78,9 +85,16 @@ public class ClinicController {
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<ClinicResponseDto>> updateClinic(
             @PathVariable UUID id,
-            @RequestBody ClinicUpdateRequestDto requestDto
+            @RequestBody ClinicUpdateRequestDto dto,
+            @RequestHeader("X-User-Id") String userId,
+            @RequestHeader("X-User-Role") String role
     ) {
-        ClinicResponseDto updatedClinic = clinicService.updateClinic(id, requestDto);
+        ClinicResponseDto updatedClinic = clinicService.updateClinic(
+                id,
+                dto,
+                UUID.fromString(userId),
+                role
+        );
 
         ApiResponse<ClinicResponseDto> response = ApiResponse.<ClinicResponseDto>builder()
                 .status(HttpStatus.OK.value())

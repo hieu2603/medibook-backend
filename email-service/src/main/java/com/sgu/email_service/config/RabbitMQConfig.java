@@ -20,9 +20,9 @@ public class RabbitMQConfig {
     public static final String EMAIL_WELCOME_QUEUE = "email.welcome.queue";
     public static final String EMAIL_WELCOME_ROUTING_KEY = "EMAIL.WELCOME";
 
-    // Reset Password Email
-    public static final String EMAIL_RESET_PASSWORD_QUEUE = "email.reset-password.queue";
-    public static final String EMAIL_RESET_PASSWORD_ROUTING_KEY = "EMAIL.RESET_PASSWORD";
+    // Forgot Password Email
+    public static final String EMAIL_FORGOT_PASSWORD_QUEUE = "email.forgot-password.queue";
+    public static final String EMAIL_FORGOT_PASSWORD_ROUTING_KEY = "EMAIL.FORGOT_PASSWORD";
 
     // Booking Success Email
     public static final String EMAIL_BOOKING_SUCCESS_QUEUE = "email.booking-success.queue";
@@ -53,16 +53,16 @@ public class RabbitMQConfig {
 
     // Reset Password Queue + Binding
     @Bean
-    public Queue resetPasswordQueue() {
-        return new Queue(EMAIL_RESET_PASSWORD_QUEUE, true);
+    public Queue forgotPasswordQueue() {
+        return new Queue(EMAIL_FORGOT_PASSWORD_QUEUE, true);
     }
 
     @Bean
-    public Binding resetPasswordBinding(Queue resetPasswordQueue, TopicExchange emailExchange) {
+    public Binding forgotPasswordBinding(Queue forgotPasswordQueue, TopicExchange emailExchange) {
         return BindingBuilder
-                .bind(resetPasswordQueue)
+                .bind(forgotPasswordQueue)
                 .to(emailExchange)
-                .with(EMAIL_RESET_PASSWORD_ROUTING_KEY);
+                .with(EMAIL_FORGOT_PASSWORD_ROUTING_KEY);
     }
 
     // Booking Success Queue + Binding

@@ -1,4 +1,4 @@
-package com.sgu.clinic_service.dto.response.common;
+package com.sgu.auth_service.dto.response.common;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
@@ -18,6 +18,6 @@ public class ErrorResponse {
     private String error;
 
     private String message;
-    
+
     private List<String> details;
 }

@@ -1,4 +1,4 @@
-package com.sgu.clinic_service.dto.response.common;
+package com.sgu.common.dto;
 
 import lombok.Builder;
 import lombok.Data;

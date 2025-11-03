@@ -1,4 +1,4 @@
-package com.sgu.clinic_service.exception;
+package com.sgu.common.exception;
 
 public class ResourceNotFoundException extends RuntimeException {
     public ResourceNotFoundException(String message) {

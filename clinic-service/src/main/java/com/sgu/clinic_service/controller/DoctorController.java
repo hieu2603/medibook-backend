@@ -3,10 +3,10 @@ package com.sgu.clinic_service.controller;
 import com.sgu.clinic_service.constant.DoctorStatus;
 import com.sgu.clinic_service.dto.request.doctor.DoctorCreateRequestDto;
 import com.sgu.clinic_service.dto.request.doctor.DoctorUpdateRequestDto;
-import com.sgu.clinic_service.dto.response.common.ApiResponse;
-import com.sgu.clinic_service.dto.response.common.PaginationResponse;
 import com.sgu.clinic_service.dto.response.doctor.DoctorResponseDto;
 import com.sgu.clinic_service.service.DoctorService;
+import com.sgu.common.dto.ApiResponse;
+import com.sgu.common.dto.PaginationResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -68,9 +68,10 @@ public class DoctorController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<DoctorResponseDto>> createDoctor(
-            @Valid @RequestBody DoctorCreateRequestDto dto
+            @Valid @RequestBody DoctorCreateRequestDto dto,
+            @RequestHeader("X-User-Role") String role
     ) {
-        DoctorResponseDto createdDoctor = doctorService.createDoctor(dto);
+        DoctorResponseDto createdDoctor = doctorService.createDoctor(dto, role);
 
         ApiResponse<DoctorResponseDto> response = ApiResponse.<DoctorResponseDto>builder()
                 .status(HttpStatus.CREATED.value())
@@ -86,9 +87,16 @@ public class DoctorController {
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<DoctorResponseDto>> updateDoctor(
             @PathVariable UUID id,
-            @Valid @RequestBody DoctorUpdateRequestDto dto
+            @Valid @RequestBody DoctorUpdateRequestDto dto,
+            @RequestHeader("X-User-Id") String userId,
+            @RequestHeader("X-User-Role") String role
     ) {
-        DoctorResponseDto updatedDoctor = doctorService.updateDoctor(id, dto);
+        DoctorResponseDto updatedDoctor = doctorService.updateDoctor(
+                id,
+                dto,
+                UUID.fromString(userId),
+                role
+        );
 
         ApiResponse<DoctorResponseDto> response = ApiResponse.<DoctorResponseDto>builder()
                 .status(HttpStatus.OK.value())
@@ -103,9 +111,11 @@ public class DoctorController {
 
     @PatchMapping("/{id}/lock")
     public ResponseEntity<ApiResponse<DoctorResponseDto>> lockDoctor(
-            @PathVariable UUID id
+            @PathVariable UUID id,
+            @RequestHeader("X-User-Id") String userId,
+            @RequestHeader("X-User-Role") String role
     ) {
-        DoctorResponseDto doctor = doctorService.lockDoctor(id);
+        DoctorResponseDto doctor = doctorService.lockDoctor(id, UUID.fromString(userId), role);
 
         ApiResponse<DoctorResponseDto> response = ApiResponse.<DoctorResponseDto>builder()
                 .status(HttpStatus.OK.value())
@@ -120,9 +130,11 @@ public class DoctorController {
 
     @PatchMapping("/{id}/unlock")
     public ResponseEntity<ApiResponse<DoctorResponseDto>> unlockDoctor(
-            @PathVariable UUID id
+            @PathVariable UUID id,
+            @RequestHeader("X-User-Id") String userId,
+            @RequestHeader("X-User-Role") String role
     ) {
-        DoctorResponseDto doctor = doctorService.unlockDoctor(id);
+        DoctorResponseDto doctor = doctorService.unlockDoctor(id, UUID.fromString(userId), role);
 
         ApiResponse<DoctorResponseDto> response = ApiResponse.<DoctorResponseDto>builder()
                 .status(HttpStatus.OK.value())

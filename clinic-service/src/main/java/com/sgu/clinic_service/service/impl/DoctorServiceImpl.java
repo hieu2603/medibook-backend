@@ -3,14 +3,15 @@ package com.sgu.clinic_service.service.impl;
 import com.sgu.clinic_service.constant.DoctorStatus;
 import com.sgu.clinic_service.dto.request.doctor.DoctorCreateRequestDto;
 import com.sgu.clinic_service.dto.request.doctor.DoctorUpdateRequestDto;
-import com.sgu.clinic_service.dto.response.common.PaginationMeta;
-import com.sgu.clinic_service.dto.response.common.PaginationResponse;
 import com.sgu.clinic_service.dto.response.doctor.DoctorResponseDto;
-import com.sgu.clinic_service.exception.ResourceNotFoundException;
 import com.sgu.clinic_service.mapper.DoctorMapper;
 import com.sgu.clinic_service.model.Doctor;
 import com.sgu.clinic_service.repository.DoctorRepository;
+import com.sgu.clinic_service.security.DoctorPermissionValidator;
 import com.sgu.clinic_service.service.DoctorService;
+import com.sgu.common.dto.PaginationMeta;
+import com.sgu.common.dto.PaginationResponse;
+import com.sgu.common.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,6 +25,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class DoctorServiceImpl implements DoctorService {
     private final DoctorRepository doctorRepository;
+    private final DoctorPermissionValidator permissionValidator;
 
     @Override
     public PaginationResponse<DoctorResponseDto> getAllDoctorsByClinicId(
@@ -86,7 +88,9 @@ public class DoctorServiceImpl implements DoctorService {
     }
 
     @Override
-    public DoctorResponseDto createDoctor(DoctorCreateRequestDto dto) {
+    public DoctorResponseDto createDoctor(DoctorCreateRequestDto dto, String role) {
+        permissionValidator.validateCreatePermission(role);
+
         Doctor doctor = DoctorMapper.toEntity(dto);
 
         Doctor createdDoctor = doctorRepository.save(doctor);
@@ -95,9 +99,11 @@ public class DoctorServiceImpl implements DoctorService {
     }
 
     @Override
-    public DoctorResponseDto updateDoctor(UUID id, DoctorUpdateRequestDto dto) {
+    public DoctorResponseDto updateDoctor(UUID id, DoctorUpdateRequestDto dto, UUID userId, String role) {
         Doctor doctor = doctorRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Doctor not found"));
+
+        permissionValidator.validateUpdatePermission(doctor, userId, role);
 
         DoctorMapper.updateEntity(doctor, dto);
 
@@ -107,9 +113,11 @@ public class DoctorServiceImpl implements DoctorService {
     }
 
     @Override
-    public DoctorResponseDto lockDoctor(UUID id) {
+    public DoctorResponseDto lockDoctor(UUID id, UUID userId, String role) {
         Doctor doctor = doctorRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Doctor not found"));
+
+        permissionValidator.validateLockPermission(doctor, userId, role);
 
         doctor.setStatus(DoctorStatus.INACTIVE);
 
@@ -119,9 +127,11 @@ public class DoctorServiceImpl implements DoctorService {
     }
 
     @Override
-    public DoctorResponseDto unlockDoctor(UUID id) {
+    public DoctorResponseDto unlockDoctor(UUID id, UUID userId, String role) {
         Doctor doctor = doctorRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Doctor not found"));
+
+        permissionValidator.validateUnlockPermission(doctor, userId, role);
 
         doctor.setStatus(DoctorStatus.ACTIVE);
 

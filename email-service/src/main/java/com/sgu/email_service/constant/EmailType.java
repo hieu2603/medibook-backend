@@ -7,7 +7,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum EmailType {
     WELCOME("Chào mừng bạn đến với Medibook!", "welcome"),
-    RESET_PASSWORD("Yêu cầu đặt lại mật khẩu Medibook của bạn", "reset-password"),
+    FORGOT_PASSWORD("Yêu cầu đặt lại mật khẩu Medibook của bạn", "forgot-password"),
     BOOKING_SUCCESS("Đặt lịch khám thành công", "booking-success"),
     BOOKING_CANCELED("Lịch khám của bạn đã bị hủy", "booking-canceled");
 

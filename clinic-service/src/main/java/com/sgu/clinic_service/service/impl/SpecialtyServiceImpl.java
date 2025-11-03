@@ -3,11 +3,12 @@ package com.sgu.clinic_service.service.impl;
 import com.sgu.clinic_service.dto.request.specialty.SpecialtyCreateRequestDto;
 import com.sgu.clinic_service.dto.request.specialty.SpecialtyUpdateRequestDto;
 import com.sgu.clinic_service.dto.response.specialty.SpecialtyResponseDto;
-import com.sgu.clinic_service.exception.ResourceNotFoundException;
 import com.sgu.clinic_service.mapper.SpecialtyMapper;
 import com.sgu.clinic_service.model.Specialty;
 import com.sgu.clinic_service.repository.SpecialtyRepository;
+import com.sgu.clinic_service.security.SpecialtyPermissionValidator;
 import com.sgu.clinic_service.service.SpecialtyService;
+import com.sgu.common.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +19,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class SpecialtyServiceImpl implements SpecialtyService {
     private final SpecialtyRepository specialtyRepository;
+    private final SpecialtyPermissionValidator permissionValidator;
 
     @Override
     public List<SpecialtyResponseDto> getAllSpecialties() {
@@ -37,7 +39,9 @@ public class SpecialtyServiceImpl implements SpecialtyService {
     }
 
     @Override
-    public SpecialtyResponseDto createSpecialty(SpecialtyCreateRequestDto dto) {
+    public SpecialtyResponseDto createSpecialty(SpecialtyCreateRequestDto dto, String role) {
+        permissionValidator.validateCreatePermission(role);
+
         if (specialtyRepository.existsByNameIgnoreCase(dto.getName())) {
             throw new IllegalArgumentException("Specialty name already exists");
         }
@@ -50,7 +54,9 @@ public class SpecialtyServiceImpl implements SpecialtyService {
     }
 
     @Override
-    public SpecialtyResponseDto updateSpecialty(UUID id, SpecialtyUpdateRequestDto dto) {
+    public SpecialtyResponseDto updateSpecialty(UUID id, SpecialtyUpdateRequestDto dto, String role) {
+        permissionValidator.validateUpdatePermission(role);
+
         if (specialtyRepository.existsByNameIgnoreCase(dto.getName())) {
             throw new IllegalArgumentException("Specialty name already exists");
         }

@@ -3,13 +3,14 @@ package com.sgu.clinic_service.service.impl;
 import com.sgu.clinic_service.dto.request.clinic.ClinicCreateRequestDto;
 import com.sgu.clinic_service.dto.request.clinic.ClinicUpdateRequestDto;
 import com.sgu.clinic_service.dto.response.clinic.ClinicResponseDto;
-import com.sgu.clinic_service.dto.response.common.PaginationMeta;
-import com.sgu.clinic_service.dto.response.common.PaginationResponse;
-import com.sgu.clinic_service.exception.ResourceNotFoundException;
 import com.sgu.clinic_service.mapper.ClinicMapper;
 import com.sgu.clinic_service.model.Clinic;
 import com.sgu.clinic_service.repository.ClinicRepository;
+import com.sgu.clinic_service.security.ClinicPermissionValidator;
 import com.sgu.clinic_service.service.ClinicService;
+import com.sgu.common.dto.PaginationMeta;
+import com.sgu.common.dto.PaginationResponse;
+import com.sgu.common.exception.ResourceNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,18 +25,35 @@ import java.util.UUID;
 @AllArgsConstructor
 public class ClinicServiceImpl implements ClinicService {
     private final ClinicRepository clinicRepository;
+    private final ClinicPermissionValidator permissionValidator;
 
     @Override
-    public PaginationResponse<ClinicResponseDto> getAllClinics(
-            String name, int page, int size
+    public PaginationResponse<ClinicResponseDto> getClinics(
+            String name, Double latitude, Double longitude, Double radius,
+            int page, int size
     ) {
         int pageIndex = (page <= 0) ? 0 : page - 1;
 
-        Pageable pageable = PageRequest.of(pageIndex, size, Sort.by("clinicName").ascending());
+        Pageable pageable;
+        Page<Clinic> clinicPage;
 
-        Page<Clinic> clinicPage = (name == null || name.trim().isEmpty())
-                ? clinicRepository.findAll(pageable)
-                : clinicRepository.findByClinicNameContainingIgnoreCase(name, pageable);
+        boolean hasNearby = latitude != null && longitude != null && radius != null;
+        boolean hasName = name != null && !name.trim().isEmpty();
+
+        if (hasNearby) {
+            pageable = PageRequest.of(pageIndex, size);
+            clinicPage = clinicRepository.findByNameAndNearby(
+                    hasName ? name : null,
+                    latitude, longitude, radius,
+                    pageable
+            );
+        } else if (hasName) {
+            pageable = PageRequest.of(pageIndex, size, Sort.by("clinicName").ascending());
+            clinicPage = clinicRepository.findByClinicNameContainingIgnoreCase(name, pageable);
+        } else {
+            pageable = PageRequest.of(pageIndex, size, Sort.by("clinicName").ascending());
+            clinicPage = clinicRepository.findAll(pageable);
+        }
 
         List<ClinicResponseDto> data = clinicPage.map(ClinicMapper::toDto).getContent();
 
@@ -72,9 +90,11 @@ public class ClinicServiceImpl implements ClinicService {
     }
 
     @Override
-    public ClinicResponseDto updateClinic(UUID id, ClinicUpdateRequestDto dto) {
+    public ClinicResponseDto updateClinic(UUID id, ClinicUpdateRequestDto dto, UUID userId, String role) {
         Clinic clinic = clinicRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Clinic not found"));
+
+        permissionValidator.validateUpdatePermission(clinic, userId, role);
 
         ClinicMapper.updateEntity(clinic, dto);
 

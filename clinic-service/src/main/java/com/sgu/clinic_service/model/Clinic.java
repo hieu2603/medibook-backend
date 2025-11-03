@@ -22,23 +22,24 @@ public class Clinic {
     @Column(name = "clinic_name", nullable = false)
     private String clinicName;
 
-    @Column(name = "phone", nullable = false)
+    @Column(name = "phone")
     private String phone;
 
-    @Column(name = "address", nullable = false)
+    @Column(name = "address")
     private String address;
 
-    @Column(name = "latitude", precision = 10, scale = 8, nullable = false)
+    @Column(name = "latitude", precision = 10, scale = 8)
     private BigDecimal latitude;
 
-    @Column(name = "longitude", precision = 11, scale = 8, nullable = false)
+    @Column(name = "longitude", precision = 11, scale = 8)
     private BigDecimal longitude;
 
-    @Column(name = "description", columnDefinition = "TEXT", nullable = false)
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "price", precision = 11, scale = 2, nullable = false)
-    private BigDecimal price;
+    @Column(name = "price", precision = 11, scale = 2)
+    @Builder.Default
+    private BigDecimal price = BigDecimal.ZERO;
 
     @Column(name = "user_id", nullable = false)
     private UUID userId;

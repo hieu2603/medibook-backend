@@ -3,8 +3,8 @@ package com.sgu.clinic_service.service;
 import com.sgu.clinic_service.constant.DoctorStatus;
 import com.sgu.clinic_service.dto.request.doctor.DoctorCreateRequestDto;
 import com.sgu.clinic_service.dto.request.doctor.DoctorUpdateRequestDto;
-import com.sgu.clinic_service.dto.response.common.PaginationResponse;
 import com.sgu.clinic_service.dto.response.doctor.DoctorResponseDto;
+import com.sgu.common.dto.PaginationResponse;
 
 import java.util.UUID;
 
@@ -17,11 +17,11 @@ public interface DoctorService {
 
     DoctorResponseDto getDoctorById(UUID id);
 
-    DoctorResponseDto createDoctor(DoctorCreateRequestDto dto);
+    DoctorResponseDto createDoctor(DoctorCreateRequestDto dto, String role);
 
-    DoctorResponseDto updateDoctor(UUID id, DoctorUpdateRequestDto dto);
+    DoctorResponseDto updateDoctor(UUID id, DoctorUpdateRequestDto dto, UUID userID, String role);
 
-    DoctorResponseDto lockDoctor(UUID id);
+    DoctorResponseDto lockDoctor(UUID id, UUID userId, String role);
 
-    DoctorResponseDto unlockDoctor(UUID id);
+    DoctorResponseDto unlockDoctor(UUID id, UUID userId, String role);
 }

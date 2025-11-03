@@ -1,4 +1,4 @@
-package com.sgu.clinic_service.dto.response.common;
+package com.sgu.common.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;

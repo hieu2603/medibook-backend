@@ -1,16 +1,12 @@
 package com.sgu.clinic_service.dto.request.clinic;
 
 import jakarta.validation.constraints.*;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
 public class ClinicUpdateRequestDto {
     @Size(max = 255, message = "Clinic name must not exceed 255 characters")

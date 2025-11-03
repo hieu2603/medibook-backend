@@ -21,10 +21,10 @@ public class EmailListener {
         emailService.sendEmail(emailMessage, EmailType.WELCOME);
     }
 
-    @RabbitListener(queues = RabbitMQConfig.EMAIL_RESET_PASSWORD_QUEUE)
+    @RabbitListener(queues = RabbitMQConfig.EMAIL_FORGOT_PASSWORD_QUEUE)
     public void handleResetPasswordEmail(EmailMessage emailMessage) {
         log.info("Receive EMAIL.RESET_PASSWORD message for: {}", emailMessage.getTo());
-        emailService.sendEmail(emailMessage, EmailType.RESET_PASSWORD);
+        emailService.sendEmail(emailMessage, EmailType.FORGOT_PASSWORD);
     }
 
     @RabbitListener(queues = RabbitMQConfig.EMAIL_BOOKING_SUCCESS_QUEUE)

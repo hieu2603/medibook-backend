@@ -12,7 +12,7 @@ public interface SpecialtyService {
 
     SpecialtyResponseDto getSpecialtyById(UUID id);
 
-    SpecialtyResponseDto createSpecialty(SpecialtyCreateRequestDto dto);
+    SpecialtyResponseDto createSpecialty(SpecialtyCreateRequestDto dto, String role);
 
-    SpecialtyResponseDto updateSpecialty(UUID id, SpecialtyUpdateRequestDto dto);
+    SpecialtyResponseDto updateSpecialty(UUID id, SpecialtyUpdateRequestDto dto, String role);
 }

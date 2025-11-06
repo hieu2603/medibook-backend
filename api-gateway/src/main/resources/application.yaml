@@ -7,20 +7,26 @@ spring:
   cloud:
     gateway:
       routes:
-        - id: clinic-service
-          uri: http://localhost:8081
-          predicates:
-            - Path=/api/clinics/**, /api/doctors/**, /api/specialties/**
-          filters:
-            - JwtAuthFilter
-
         - id: auth-service
-          uri: http://localhost:8082
+          uri: http://localhost:8081
           predicates:
             - Path=/api/auth/**
           filters:
             - JwtAuthFilter
 
+        - id: user-service
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/users/**
+          filters:
+            - JwtAuthFilter
+
+        - id: clinic-service
+          uri: http://localhost:8083
+          predicates:
+            - Path=/api/clinics/**, /api/doctors/**, /api/specialties/**
+          filters:
+            - JwtAuthFilter
 
 jwt:
   secret: cccd758191545e6c7a6fbe10154ec9a743ecedb4f2b80ee6294fb852b7e08b68
@@ -38,6 +44,8 @@ eureka:
 gateway:
   public-routes:
     - path: /api/auth/**
+      methods: [ POST ]
+    - path: /api/users/**
       methods: [ POST ]
     - path: /api/clinics/**
       methods: [ GET, POST ]

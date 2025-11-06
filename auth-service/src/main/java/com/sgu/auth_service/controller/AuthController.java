@@ -4,15 +4,17 @@ import com.sgu.auth_service.dto.request.login.LoginRequestDto;
 import com.sgu.auth_service.dto.request.password.ChangePasswordRequestDto;
 import com.sgu.auth_service.dto.request.password.ForgotPasswordRequestDto;
 import com.sgu.auth_service.dto.request.register.RegisterRequestDto;
-import com.sgu.auth_service.dto.response.common.ApiResponse;
 import com.sgu.auth_service.dto.response.login.LoginResponseDto;
 import com.sgu.auth_service.dto.response.register.RegisterResponseDto;
 import com.sgu.auth_service.service.AuthService;
+import com.sgu.common.dto.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -71,7 +73,7 @@ public class AuthController {
     }
 
     @PutMapping("/change-password")
-    public ResponseEntity<ApiResponse<Void>> resetPassword(
+    public ResponseEntity<ApiResponse<Void>> changePassword(
             @Valid @RequestBody ChangePasswordRequestDto dto,
             @RequestHeader("X-User-Email") String email
     ) {
@@ -80,6 +82,40 @@ public class AuthController {
         ApiResponse<Void> response = ApiResponse.<Void>builder()
                 .status(HttpStatus.OK.value())
                 .message("Password changed successfully")
+                .build();
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(response);
+    }
+
+    @PatchMapping("/{id}/lock")
+    public ResponseEntity<ApiResponse<Void>> lockUser(
+            @PathVariable(name = "id") UUID targetId,
+            @RequestHeader("X-User-Role") String role
+    ) {
+        authService.lockUser(targetId, role);
+
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
+                .status(HttpStatus.OK.value())
+                .message("User locked successfully")
+                .build();
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(response);
+    }
+
+    @PatchMapping("/{id}/unlock")
+    public ResponseEntity<ApiResponse<Void>> unlockUser(
+            @PathVariable(name = "id") UUID targetId,
+            @RequestHeader("X-User-Role") String role
+    ) {
+        authService.unlockUser(targetId, role);
+
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
+                .status(HttpStatus.OK.value())
+                .message("User unlocked successfully")
                 .build();
 
         return ResponseEntity

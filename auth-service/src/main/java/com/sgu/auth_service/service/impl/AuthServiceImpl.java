@@ -11,6 +11,7 @@ import com.sgu.auth_service.event.EmailEventProducer;
 import com.sgu.auth_service.mapper.UserMapper;
 import com.sgu.auth_service.model.User;
 import com.sgu.auth_service.repository.UserRepository;
+import com.sgu.auth_service.security.AuthPermissionValidator;
 import com.sgu.auth_service.service.AuthService;
 import com.sgu.auth_service.utils.JwtUtil;
 import com.sgu.auth_service.utils.PasswordUtil;
@@ -21,6 +22,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
@@ -30,11 +33,12 @@ public class AuthServiceImpl implements AuthService {
     private final JwtUtil jwtUtil;
     private final PasswordUtil passwordUtil;
     private final EmailEventProducer emailEventProducer;
+    private final AuthPermissionValidator authPermissionValidator;
 
     @Override
     public RegisterResponseDto register(RegisterRequestDto dto) {
-        String email = dto.getEmail();
-        String password = dto.getPassword();
+        String email = dto.getEmail().trim();
+        String password = dto.getPassword().trim();
 
         if (userRepository.existsByEmail(email)) {
             throw new EmailAlreadyExistsException("Email already exists");
@@ -66,7 +70,7 @@ public class AuthServiceImpl implements AuthService {
             throw new InvalidCredentialsException("Your account has been locked");
         }
 
-        if (!passwordEncoder.matches(dto.getPassword(), password)) {
+        if (!passwordEncoder.matches(dto.getPassword().trim(), password)) {
             throw new InvalidCredentialsException("Invalid email or password");
         }
 
@@ -98,13 +102,37 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        if (!passwordEncoder.matches(dto.getOldPassword(), user.getPassword())) {
+        if (!passwordEncoder.matches(dto.getOldPassword().trim(), user.getPassword())) {
             throw new InvalidCredentialsException("Old password is incorrect");
         }
 
-        String newPassword = passwordEncoder.encode(dto.getNewPassword());
+        String newPassword = passwordEncoder.encode(dto.getNewPassword().trim());
 
         user.setPassword(newPassword);
+        userRepository.save(user);
+    }
+
+    @Override
+    public void lockUser(UUID targetId, String role) {
+        User user = userRepository.findById(targetId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        authPermissionValidator.validateLockPermission(role);
+
+        user.setStatus(Status.INACTIVE);
+
+        userRepository.save(user);
+    }
+
+    @Override
+    public void unlockUser(UUID targetId, String role) {
+        User user = userRepository.findById(targetId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        authPermissionValidator.validateUnlockPermission(role);
+
+        user.setStatus(Status.ACTIVE);
+
         userRepository.save(user);
     }
 }

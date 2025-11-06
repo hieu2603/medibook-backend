@@ -7,6 +7,8 @@ import com.sgu.auth_service.dto.request.register.RegisterRequestDto;
 import com.sgu.auth_service.dto.response.login.LoginResponseDto;
 import com.sgu.auth_service.dto.response.register.RegisterResponseDto;
 
+import java.util.UUID;
+
 public interface AuthService {
     RegisterResponseDto register(RegisterRequestDto dto);
 
@@ -15,4 +17,8 @@ public interface AuthService {
     void forgotPassword(ForgotPasswordRequestDto dto);
 
     void changePassword(ChangePasswordRequestDto dto, String email);
+
+    void lockUser(UUID targetId, String role);
+
+    void unlockUser(UUID targetId, String role);
 }

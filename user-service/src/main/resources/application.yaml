@@ -1,6 +1,6 @@
 spring:
   application:
-    name: auth-service
+    name: user-service
   datasource:
     url:
       jdbc:postgresql://localhost:5432/user_service
@@ -8,17 +8,18 @@ spring:
     password: root
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     show-sql: true
   rabbitmq:
     host: localhost
     port: 5672
-    username: admin
-    password: admin
+    username: guest
+    password: guest
 
-jwt:
-  secret: cccd758191545e6c7a6fbe10154ec9a743ecedb4f2b80ee6294fb852b7e08b68
-  expiration: 3600000 # 1h
+cloudinary:
+  cloud-name: dt5knfmgk
+  api-key: 539942185554519
+  api-secret: jv3YpmM9mXJQ3VBfXLK3JhBsSpg
 
 server:
-  port: 8081
+  port: 8082

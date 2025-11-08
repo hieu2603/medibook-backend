@@ -24,3 +24,5 @@ logging:
   level:
     com.sgu.payment_service.utils.VNPayUtil: DEBUG
     com.sgu.payment_service.service.impl.VNPayServiceImpl: DEBUG
+user-service:
+  url: http://localhost:8082  # Port của User Service

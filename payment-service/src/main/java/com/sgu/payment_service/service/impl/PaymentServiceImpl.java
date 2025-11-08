@@ -2,10 +2,13 @@ package com.sgu.payment_service.service.impl;
 
 import com.sgu.payment_service.dto.message.BalanceUpdateMessage;
 import com.sgu.payment_service.dto.message.NotificationMessage;
+import com.sgu.payment_service.dto.request.PaymentRequestDto;
 import com.sgu.payment_service.dto.request.WithdrawRequest;
 import com.sgu.payment_service.dto.response.payment.PaymentResponse;
 import com.sgu.payment_service.enums.BalanceOperation;
 import com.sgu.payment_service.enums.PaymentStatus;
+import com.sgu.payment_service.client.UserServiceClient;
+import com.sgu.payment_service.dto.response.payment.ApiResponse;
 import com.sgu.payment_service.enums.PaymentType;
 import com.sgu.payment_service.exception.PaymentException;
 import com.sgu.payment_service.exception.PaymentNotFoundException;
@@ -15,6 +18,8 @@ import com.sgu.payment_service.service.MessagePublisher;
 import com.sgu.payment_service.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,89 +35,133 @@ public class PaymentServiceImpl implements PaymentService {
     
     private final PaymentRepository paymentRepository;
     private final MessagePublisher messagePublisher;
+    private final UserServiceClient userServiceClient;
     
     @Override
     @Transactional
     public PaymentResponse withdraw(WithdrawRequest request) {
+    try {
+        log.info("💰 Processing withdrawal for user: {}, amount: {}", request.getUserId(), request.getAmount());
+        
+        // Tạo payment record với PENDING
+        Payment payment = Payment.builder()
+                .id(UUID.randomUUID().toString())
+                .userId(request.getUserId())
+                .amount(request.getAmount())
+                .paymentType(PaymentType.WITHDRAW)
+                .status(PaymentStatus.PENDING)
+                .paymentMethod("BANK_TRANSFER")
+                .bankAccount(request.getBankAccount())
+                .bankName(request.getBankName())
+                .description(request.getDescription() != null ? request.getDescription() : "Rút tiền về ngân hàng")
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+        
+        payment = paymentRepository.save(payment);
+        log.info("✅ Created withdrawal payment: {}", payment.getId());
+        
+        // 🔄 GỌI USER SERVICE ĐỒNG BỘ - TRỪ TIỀN TRƯỚC
         try {
-            log.info("💰 Processing withdrawal for user: {}, amount: {}", request.getUserId(), request.getAmount());
-            
-            //  Tạo payment record với PENDING trước
-            Payment payment = Payment.builder()
-                    .id(UUID.randomUUID().toString())
-                    .userId(request.getUserId())
+            PaymentRequestDto paymentRequest = PaymentRequestDto.builder()
+                    .userId(UUID.fromString(request.getUserId()))
                     .amount(request.getAmount())
-                    .paymentType(PaymentType.WITHDRAW)
-                    .status(PaymentStatus.PENDING)  
-                    .paymentMethod("BANK_TRANSFER")
-                    .bankAccount(request.getBankAccount())
-                    .bankName(request.getBankName())
-                    .description(request.getDescription() != null ? request.getDescription() : "Rút tiền về ngân hàng")
-                    .createdAt(LocalDateTime.now())
-                    .updatedAt(LocalDateTime.now())
+                    .type(PaymentType.WITHDRAW)
                     .build();
             
-            payment = paymentRepository.save(payment);
-            log.info(" Created withdrawal payment: {}", payment.getId());
+            log.info("📞 Calling User Service to withdraw for user: {}", request.getUserId());
             
-            //  Simulate withdrawal processing
-            boolean withdrawalSuccessful = processWithdrawal(payment);
+            ResponseEntity<ApiResponse<Void>> response = userServiceClient.withdraw(
+                    UUID.fromString(request.getUserId()), 
+                    paymentRequest
+            );
             
-            if (withdrawalSuccessful) {
-                //  Update status to COMPLETED
-                payment.setStatus(PaymentStatus.COMPLETED);
-                payment.setUpdatedAt(LocalDateTime.now());
-                payment.setTransactionId("WD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
-                payment = paymentRepository.save(payment);
-                
-                //  GỬI MESSAGE ĐẾN USER SERVICE - Trừ tiền (SAU KHI withdrawal thành công)
-                BalanceUpdateMessage balanceMessage = BalanceUpdateMessage.builder()
-                        .userId(request.getUserId())
-                        .amount(request.getAmount())
-                        .operation(BalanceOperation.DECREASE.name())
-                        .build();
-                messagePublisher.publishBalanceUpdate(balanceMessage);
-                log.info(" Published balance decrease message for user: {}", request.getUserId());
-                
-                //  GỬI MESSAGE ĐẾN NOTIFICATION SERVICE
-                NotificationMessage notificationMessage = NotificationMessage.builder()
-                        .userId(request.getUserId())
-                        .title("Rút tiền thành công")
-                        .message(String.format("Bạn đã rút thành công %s VNĐ về tài khoản %s (%s)", 
-                                String.format("%,d", request.getAmount().intValue()),
-                                request.getBankName(),
-                                maskBankAccount(request.getBankAccount())))
-                        .type("WITHDRAW_SUCCESS")
-                        .build();
-                messagePublisher.publishNotification(notificationMessage);
-                log.info("Withdrawal completed successfully for payment: {}", payment.getId());
-                
-            } else {
-                //  Withdrawal failed
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                // User Service báo lỗi (ví dụ: không đủ tiền)
                 payment.setStatus(PaymentStatus.FAILED);
                 payment.setUpdatedAt(LocalDateTime.now());
-                payment = paymentRepository.save(payment);
+                paymentRepository.save(payment);
                 
-                //  Gửi notification thất bại (KHÔNG CẦN rollback vì chưa trừ tiền)
-                NotificationMessage notificationMessage = NotificationMessage.builder()
-                        .userId(request.getUserId())
-                        .title("Rút tiền thất bại")
-                        .message("Yêu cầu rút tiền không thành công. Vui lòng thử lại sau.")
-                        .type("WITHDRAW_FAILED")
-                        .build();
-                messagePublisher.publishNotification(notificationMessage);
-                
-                log.error(" Withdrawal failed for payment: {}", payment.getId());
-                throw new PaymentException("Không thể xử lý yêu cầu rút tiền");
+                log.error("❌ User Service failed: {}", response.getBody().getMessage());
+                throw new PaymentException(response.getBody().getMessage());
             }
             
-            return mapToPaymentResponse(payment);
+            log.info("✅ Balance decreased successfully");
             
         } catch (Exception e) {
-            log.error("Error processing withdrawal request", e);
-            throw new PaymentException("Không thể xử lý yêu cầu rút tiền: " + e.getMessage());
+            log.error("❌ Error calling User Service to decrease balance", e);
+            payment.setStatus(PaymentStatus.FAILED);
+            payment.setUpdatedAt(LocalDateTime.now());
+            paymentRepository.save(payment);
+            
+            throw new PaymentException("Không thể trừ tiền: " + e.getMessage());
         }
+        
+        // ✅ Simulate withdrawal processing to bank
+        boolean withdrawalSuccessful = processWithdrawal(payment);
+        
+        if (withdrawalSuccessful) {
+            // Update status to COMPLETED
+            payment.setStatus(PaymentStatus.COMPLETED);
+            payment.setUpdatedAt(LocalDateTime.now());
+            payment.setTransactionId("WD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+            payment = paymentRepository.save(payment);
+            
+            // 📤 GỬI NOTIFICATION
+            NotificationMessage notificationMessage = NotificationMessage.builder()
+                    .userId(request.getUserId())
+                    .title("Rút tiền thành công")
+                    .message(String.format("Bạn đã rút thành công %s VNĐ về tài khoản %s (%s)", 
+                            String.format("%,d", request.getAmount().intValue()),
+                            request.getBankName(),
+                            maskBankAccount(request.getBankAccount())))
+                    .type("WITHDRAW_SUCCESS")
+                    .build();
+            messagePublisher.publishNotification(notificationMessage);
+            
+            log.info("✅ Withdrawal completed successfully for payment: {}", payment.getId());
+            
+        } else {
+            // ❌ Withdrawal failed - ROLLBACK: Gọi User Service cộng lại tiền
+            payment.setStatus(PaymentStatus.FAILED);
+            payment.setUpdatedAt(LocalDateTime.now());
+            payment = paymentRepository.save(payment);
+            
+            try {
+                PaymentRequestDto rollbackRequest = PaymentRequestDto.builder()
+                        .userId(UUID.fromString(request.getUserId()))
+                        .amount(request.getAmount())
+                        .type(PaymentType.DEPOSIT)  // Hoàn tiền = Deposit
+                        .build();
+                
+                userServiceClient.deposit(UUID.fromString(request.getUserId()), rollbackRequest);
+                log.info("✅ Balance rollback successful");
+                
+            } catch (Exception e) {
+                log.error("❌ CRITICAL: Failed to rollback balance for user: {}", request.getUserId(), e);
+                // TODO: Alert admin
+            }
+            
+            // 📤 Gửi notification thất bại
+            NotificationMessage notificationMessage = NotificationMessage.builder()
+                    .userId(request.getUserId())
+                    .title("Rút tiền thất bại")
+                    .message("Yêu cầu rút tiền không thành công. Số tiền đã được hoàn lại vào tài khoản.")
+                    .type("WITHDRAW_FAILED")
+                    .build();
+            messagePublisher.publishNotification(notificationMessage);
+            
+            log.error("❌ Withdrawal failed for payment: {}", payment.getId());
+            throw new PaymentException("Không thể xử lý yêu cầu rút tiền");
+        }
+        
+        return mapToPaymentResponse(payment);
+        
+    } catch (Exception e) {
+        log.error("❌ Error processing withdrawal request", e);
+        throw new PaymentException("Không thể xử lý yêu cầu rút tiền: " + e.getMessage());
     }
+}
     
     @Override
     public List<PaymentResponse> getPaymentHistory(String userId) {
@@ -182,3 +231,5 @@ public class PaymentServiceImpl implements PaymentService {
         return masked + accountNumber.substring(totalLength - visibleDigits);
     }
 }
+
+

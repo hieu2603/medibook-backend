@@ -1,11 +1,13 @@
 package com.sgu.payment_service.service.impl;
-
+import com.sgu.payment_service.client.UserServiceClient;
 import com.sgu.payment_service.config.VnpayConfig;
 import com.sgu.payment_service.dto.request.VNPayPaymentRequest;
 import com.sgu.payment_service.dto.message.BalanceUpdateMessage;
 import com.sgu.payment_service.dto.message.NotificationMessage;
+import com.sgu.payment_service.dto.request.PaymentRequestDto;
 import com.sgu.payment_service.dto.request.VNPayCallbackRequest;
 import com.sgu.payment_service.dto.response.payment.VNPayPaymentResponse;
+// import com.sgu.payment_service.dto.response.payment.BalanceUpdateResponse;
 import com.sgu.payment_service.dto.response.payment.PaymentResponse;
 import com.sgu.payment_service.enums.BalanceOperation;
 import com.sgu.payment_service.enums.PaymentStatus;
@@ -19,9 +21,11 @@ import com.sgu.payment_service.utils.VNPayUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity; 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.net.URLEncoder;
+import com.sgu.payment_service.dto.response.payment.ApiResponse;  // ← IMPORT
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -37,6 +41,7 @@ public class VNPayServiceImpl implements VNPayService {
     private final VnpayConfig vnPayConfig;
     private final PaymentRepository paymentRepository;
     private final MessagePublisher messagePublisher;
+    private final UserServiceClient userServiceClient;
 
     @Override
     @Transactional
@@ -79,18 +84,18 @@ public class VNPayServiceImpl implements VNPayService {
         }
     }
 
-   @Override
+@Override
 @Transactional
 public PaymentResponse handleCallback(Map<String, String> params) {
     try {
-        log.info(" Processing VNPay callback");
+        log.info("🔔 Processing VNPay callback");
         
         // Verify signature
         if (!VNPayUtil.validateResponse(params, vnPayConfig.getHashSecret())) {
-            log.error(" Invalid VNPay signature");
+            log.error("❌ Invalid VNPay signature");
             throw new RuntimeException("Sai chữ ký VNPAY");
         }
-        log.info(" VNPay signature verified successfully");
+        log.info("✅ VNPay signature verified successfully");
 
         // Parse callback
         VNPayCallbackRequest callback = VNPayCallbackRequest.fromMap(params);
@@ -100,7 +105,7 @@ public PaymentResponse handleCallback(Map<String, String> params) {
                 .orElseThrow(() -> new PaymentException("Không tìm thấy giao dịch"));
 
         if (payment.getStatus() == PaymentStatus.COMPLETED) {
-            log.warn(" Payment already processed: {}", paymentId);
+            log.warn("⚠️ Payment already processed: {}", paymentId);
             return mapToPaymentResponse(payment);
         }
 
@@ -108,7 +113,7 @@ public PaymentResponse handleCallback(Map<String, String> params) {
         String transactionStatus = callback.getVnp_TransactionStatus();
         String transactionNo = callback.getVnp_TransactionNo();
 
-        log.info(" Payment {}: ResponseCode={}, TransactionStatus={}, TransactionNo={}", 
+        log.info("📋 Payment {}: ResponseCode={}, TransactionStatus={}, TransactionNo={}", 
                 paymentId, responseCode, transactionStatus, transactionNo);
 
         // Xác định success
@@ -120,39 +125,81 @@ public PaymentResponse handleCallback(Map<String, String> params) {
         }
 
         if (isSuccess) {
-            // SUCCESS
-            payment.setStatus(PaymentStatus.COMPLETED);
-            payment.setTransactionId(transactionNo);
-            payment.setUpdatedAt(LocalDateTime.now());
-            payment = paymentRepository.save(payment);
+            //  SUCCESS - GỌI USER SERVICE ĐỒNG BỘ
+            try {
+                // Tạo request DTO
+                PaymentRequestDto paymentRequest = PaymentRequestDto.builder()
+                        .userId(UUID.fromString(payment.getUserId()))
+                        .amount(payment.getAmount())
+                        .type(PaymentType.DEPOSIT)
+                        .build();
+                
+                log.info("📞 Calling User Service to deposit for user: {}", payment.getUserId());
+                
+                // Gọi User Service
+                ResponseEntity<ApiResponse<Void>> response = userServiceClient.deposit(
+                        UUID.fromString(payment.getUserId()), 
+                        paymentRequest
+                );
+                
+                if (response.getStatusCode().is2xxSuccessful()) {
+                    // User Service đã cộng tiền thành công
+                    payment.setStatus(PaymentStatus.COMPLETED);
+                    payment.setTransactionId(transactionNo);
+                    payment.setUpdatedAt(LocalDateTime.now());
+                    payment = paymentRepository.save(payment);
 
-            // GỬI MESSAGE ĐẾN USER SERVICE - Cộng tiền
-            BalanceUpdateMessage balanceMessage = BalanceUpdateMessage.builder()
-                    .userId(payment.getUserId())
-                    .amount(payment.getAmount())
-                    .operation(BalanceOperation.INCREASE.name())
-                    .build();
-            messagePublisher.publishBalanceUpdate(balanceMessage);
+                    log.info("✅ Deposit successful: {}", response.getBody().getMessage());
 
-            // GỬI MESSAGE ĐẾN NOTIFICATION SERVICE
-            NotificationMessage notificationMessage = NotificationMessage.builder()
-                    .userId(payment.getUserId())
-                    .title("Nạp tiền thành công")
-                    .message(String.format("Bạn đã nạp thành công %s VNĐ vào tài khoản qua VNPay",
-                            String.format("%,d", payment.getAmount().intValue())))
-                    .type("DEPOSIT_SUCCESS")
-                    .build();
-            messagePublisher.publishNotification(notificationMessage);
+                    // GỬI NOTIFICATION
+                    NotificationMessage notificationMessage = NotificationMessage.builder()
+                            .userId(payment.getUserId())
+                            .title("Nạp tiền thành công")
+                            .message(String.format("Bạn đã nạp thành công %s VNĐ vào tài khoản",
+                                    String.format("%,d", payment.getAmount().intValue())))
+                            .type("DEPOSIT_SUCCESS")
+                            .build();
+                    messagePublisher.publishNotification(notificationMessage);
 
-            log.info("✅ Payment completed successfully: {}", paymentId);
+                    log.info("✅ Payment completed successfully: {}", paymentId);
+                    
+                } else {
+                    // User Service báo lỗi
+                    payment.setStatus(PaymentStatus.FAILED);
+                    payment.setUpdatedAt(LocalDateTime.now());
+                    payment = paymentRepository.save(payment);
+                    
+                    log.error("❌ User Service failed: {}", response.getBody().getMessage());
+                    throw new PaymentException("Không thể cập nhật số dư: " + response.getBody().getMessage());
+                }
+
+            } catch (Exception e) {
+                // Lỗi khi call User Service
+                log.error("❌ Error calling User Service", e);
+                
+                payment.setStatus(PaymentStatus.FAILED);
+                payment.setUpdatedAt(LocalDateTime.now());
+                payment = paymentRepository.save(payment);
+                
+                // Gửi notification lỗi
+                NotificationMessage notificationMessage = NotificationMessage.builder()
+                        .userId(payment.getUserId())
+                        .title("Nạp tiền thất bại")
+                        .message("Giao dịch thanh toán thành công nhưng không thể cập nhật số dư. Vui lòng liên hệ hỗ trợ.")
+                        .type("DEPOSIT_FAILED")
+                        .build();
+                messagePublisher.publishNotification(notificationMessage);
+                
+                throw new PaymentException("Không thể cập nhật số dư: " + e.getMessage());
+            }
 
         } else {
-            // FAILED
+            // ❌ VNPAY PAYMENT FAILED - THÊM PHẦN NÀY
             payment.setStatus(PaymentStatus.FAILED);
             payment.setUpdatedAt(LocalDateTime.now());
             payment = paymentRepository.save(payment);
 
-            log.error("❌ Payment failed: {}, ResponseCode: {}, TransactionStatus: {}", 
+            log.error("❌ VNPay payment failed: {}, ResponseCode: {}, TransactionStatus: {}", 
                     paymentId, responseCode, transactionStatus);
 
             // GỬI NOTIFICATION THẤT BẠI
@@ -171,7 +218,7 @@ public PaymentResponse handleCallback(Map<String, String> params) {
         log.error("💥 Error processing VNPay callback", e);
         throw new PaymentException("Lỗi xử lý callback từ VNPay: " + e.getMessage());
     }
-}
+} 
 
 private String getFailureMessage(String responseCode, String transactionStatus) {
     //  Ưu tiên check responseCode (nếu có)

@@ -31,10 +31,10 @@ public class EmailEventProducer {
         );
     }
 
-    public void sendForgotPasswordEmail(String to, String newPassword) {
+    public void sendForgotPasswordEmail(String to, String resetLink) {
         Map<String, Object> variables = Map.of(
                 "email", to,
-                "newPassword", newPassword
+                "resetLink", resetLink
         );
 
         EmailMessage emailMessage = EmailMessage.builder()

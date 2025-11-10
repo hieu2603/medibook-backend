@@ -4,12 +4,15 @@ import com.sgu.auth_service.constant.Status;
 import com.sgu.auth_service.dto.request.login.LoginRequestDto;
 import com.sgu.auth_service.dto.request.password.ChangePasswordRequestDto;
 import com.sgu.auth_service.dto.request.password.ForgotPasswordRequestDto;
+import com.sgu.auth_service.dto.request.password.ResetPasswordRequestDto;
 import com.sgu.auth_service.dto.request.register.RegisterRequestDto;
 import com.sgu.auth_service.dto.response.login.LoginResponseDto;
 import com.sgu.auth_service.dto.response.register.RegisterResponseDto;
 import com.sgu.auth_service.event.EmailEventProducer;
 import com.sgu.auth_service.mapper.UserMapper;
+import com.sgu.auth_service.model.PasswordResetToken;
 import com.sgu.auth_service.model.User;
+import com.sgu.auth_service.repository.PasswordResetTokenRepository;
 import com.sgu.auth_service.repository.UserRepository;
 import com.sgu.auth_service.security.AuthPermissionValidator;
 import com.sgu.auth_service.service.AuthService;
@@ -21,7 +24,9 @@ import com.sgu.common.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -29,6 +34,7 @@ import java.util.UUID;
 public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final PasswordUtil passwordUtil;
@@ -88,13 +94,37 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByEmail(dto.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        String newPassword = passwordUtil.generateRandomPassword();
-        String encodedPassword = passwordEncoder.encode(newPassword);
+        String token = UUID.randomUUID().toString();
+        PasswordResetToken resetToken = PasswordResetToken.builder()
+                .userId(user.getId())
+                .token(token)
+                .expiryDate(LocalDateTime.now().plusMinutes(15))
+                .build();
 
-        user.setPassword(encodedPassword);
+        passwordResetTokenRepository.save(resetToken);
+        String resetLink = "https://yourdomain.com/reset-password?token=" + token;
+
+        emailEventProducer.sendForgotPasswordEmail(dto.getEmail(), resetLink);
+    }
+
+    @Override
+    @Transactional
+    public void resetPassword(ResetPasswordRequestDto dto) {
+        PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(dto.getToken())
+                .orElseThrow(() -> new ResourceNotFoundException("Invalid or expired token"));
+
+        if (resetToken.getExpiryDate().isBefore(LocalDateTime.now())) {
+            passwordResetTokenRepository.delete(resetToken);
+            throw new IllegalArgumentException("Token expired");
+        }
+
+        UUID userId = resetToken.getUserId();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
         userRepository.save(user);
 
-        emailEventProducer.sendForgotPasswordEmail(dto.getEmail(), newPassword);
+        passwordResetTokenRepository.delete(resetToken);
     }
 
     @Override

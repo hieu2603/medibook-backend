@@ -3,6 +3,7 @@ package com.sgu.auth_service.controller;
 import com.sgu.auth_service.dto.request.login.LoginRequestDto;
 import com.sgu.auth_service.dto.request.password.ChangePasswordRequestDto;
 import com.sgu.auth_service.dto.request.password.ForgotPasswordRequestDto;
+import com.sgu.auth_service.dto.request.password.ResetPasswordRequestDto;
 import com.sgu.auth_service.dto.request.register.RegisterRequestDto;
 import com.sgu.auth_service.dto.response.login.LoginResponseDto;
 import com.sgu.auth_service.dto.response.register.RegisterResponseDto;
@@ -64,7 +65,23 @@ public class AuthController {
 
         ApiResponse<Void> response = ApiResponse.<Void>builder()
                 .status(HttpStatus.OK.value())
-                .message("A new password has been sent to your email address")
+                .message("Password reset link has been sent to your email address")
+                .build();
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(response);
+    }
+
+    @PostMapping("reset-password")
+    public ResponseEntity<ApiResponse<Void>> resetPassword(
+            @Valid @RequestBody ResetPasswordRequestDto dto
+    ) {
+        authService.resetPassword(dto);
+
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
+                .status(HttpStatus.OK.value())
+                .message("Password reset successfully")
                 .build();
 
         return ResponseEntity

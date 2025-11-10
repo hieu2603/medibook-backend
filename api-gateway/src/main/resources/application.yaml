@@ -28,6 +28,13 @@ spring:
           filters:
             - JwtAuthFilter
 
+        - id: chat-service
+          uri: http://localhost:8084
+          predicates:
+            - Path=/api/messages/**
+          filters:
+            - JwtAuthFilter
+
 jwt:
   secret: cccd758191545e6c7a6fbe10154ec9a743ecedb4f2b80ee6294fb852b7e08b68
   expiration: 7200000 # 2h

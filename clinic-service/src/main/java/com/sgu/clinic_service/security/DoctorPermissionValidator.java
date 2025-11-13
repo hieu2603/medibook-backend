@@ -1,9 +1,9 @@
 package com.sgu.clinic_service.security;
 
+import com.sgu.clinic_service.exception.AccessDeniedException;
 import com.sgu.clinic_service.model.Clinic;
 import com.sgu.clinic_service.model.Doctor;
 import com.sgu.clinic_service.repository.ClinicRepository;
-import com.sgu.common.exception.AccessDeniedException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

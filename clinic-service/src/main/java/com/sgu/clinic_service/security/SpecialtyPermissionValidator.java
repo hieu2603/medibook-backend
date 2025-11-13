@@ -1,6 +1,6 @@
 package com.sgu.clinic_service.security;
 
-import com.sgu.common.exception.AccessDeniedException;
+import com.sgu.clinic_service.exception.AccessDeniedException;
 import org.springframework.stereotype.Component;
 
 @Component

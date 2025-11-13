@@ -3,12 +3,12 @@ package com.sgu.clinic_service.service.impl;
 import com.sgu.clinic_service.dto.request.specialty.SpecialtyCreateRequestDto;
 import com.sgu.clinic_service.dto.request.specialty.SpecialtyUpdateRequestDto;
 import com.sgu.clinic_service.dto.response.specialty.SpecialtyResponseDto;
+import com.sgu.clinic_service.exception.ResourceNotFoundException;
 import com.sgu.clinic_service.mapper.SpecialtyMapper;
 import com.sgu.clinic_service.model.Specialty;
 import com.sgu.clinic_service.repository.SpecialtyRepository;
 import com.sgu.clinic_service.security.SpecialtyPermissionValidator;
 import com.sgu.clinic_service.service.SpecialtyService;
-import com.sgu.common.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

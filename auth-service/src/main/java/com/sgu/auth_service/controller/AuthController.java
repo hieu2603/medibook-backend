@@ -1,5 +1,6 @@
 package com.sgu.auth_service.controller;
 
+import com.sgu.auth_service.dto.common.ApiResponse;
 import com.sgu.auth_service.dto.request.login.LoginRequestDto;
 import com.sgu.auth_service.dto.request.password.ChangePasswordRequestDto;
 import com.sgu.auth_service.dto.request.password.ForgotPasswordRequestDto;
@@ -8,7 +9,6 @@ import com.sgu.auth_service.dto.request.register.RegisterRequestDto;
 import com.sgu.auth_service.dto.response.login.LoginResponseDto;
 import com.sgu.auth_service.dto.response.register.RegisterResponseDto;
 import com.sgu.auth_service.service.AuthService;
-import com.sgu.common.dto.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

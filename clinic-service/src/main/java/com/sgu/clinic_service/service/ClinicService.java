@@ -1,9 +1,9 @@
 package com.sgu.clinic_service.service;
 
+import com.sgu.clinic_service.dto.common.PaginationResponse;
 import com.sgu.clinic_service.dto.request.clinic.ClinicCreateRequestDto;
 import com.sgu.clinic_service.dto.request.clinic.ClinicUpdateRequestDto;
 import com.sgu.clinic_service.dto.response.clinic.ClinicResponseDto;
-import com.sgu.common.dto.PaginationResponse;
 
 import java.util.UUID;
 

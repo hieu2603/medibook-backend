@@ -9,6 +9,9 @@ import com.sgu.auth_service.dto.request.register.RegisterRequestDto;
 import com.sgu.auth_service.dto.response.login.LoginResponseDto;
 import com.sgu.auth_service.dto.response.register.RegisterResponseDto;
 import com.sgu.auth_service.event.EmailEventProducer;
+import com.sgu.auth_service.exception.EmailAlreadyExistsException;
+import com.sgu.auth_service.exception.InvalidCredentialsException;
+import com.sgu.auth_service.exception.ResourceNotFoundException;
 import com.sgu.auth_service.mapper.UserMapper;
 import com.sgu.auth_service.model.PasswordResetToken;
 import com.sgu.auth_service.model.User;
@@ -17,10 +20,6 @@ import com.sgu.auth_service.repository.UserRepository;
 import com.sgu.auth_service.security.AuthPermissionValidator;
 import com.sgu.auth_service.service.AuthService;
 import com.sgu.auth_service.utils.JwtUtil;
-import com.sgu.auth_service.utils.PasswordUtil;
-import com.sgu.common.exception.EmailAlreadyExistsException;
-import com.sgu.common.exception.InvalidCredentialsException;
-import com.sgu.common.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -37,7 +36,6 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
-    private final PasswordUtil passwordUtil;
     private final EmailEventProducer emailEventProducer;
     private final AuthPermissionValidator authPermissionValidator;
 
@@ -147,6 +145,10 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findById(targetId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
+        if (targetId.equals(user.getId())) {
+            throw new IllegalStateException("Can not lock yourself");
+        }
+
         authPermissionValidator.validateLockPermission(role);
 
         user.setStatus(Status.INACTIVE);
@@ -158,6 +160,10 @@ public class AuthServiceImpl implements AuthService {
     public void unlockUser(UUID targetId, String role) {
         User user = userRepository.findById(targetId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (targetId.equals(user.getId())) {
+            throw new IllegalStateException("Can not unlock yourself");
+        }
 
         authPermissionValidator.validateUnlockPermission(role);
 

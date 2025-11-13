@@ -3,8 +3,8 @@ package com.sgu.api_gateway.filter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sgu.api_gateway.config.PublicRouteProperties;
+import com.sgu.api_gateway.dto.common.ErrorResponse;
 import com.sgu.api_gateway.utils.JwtUtil;
-import com.sgu.common.dto.ErrorResponse;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -69,7 +69,7 @@ public class JwtAuthFilter extends AbstractGatewayFilterFactory<JwtAuthFilter.Co
             String id = jwtUtil.extractSubject(token);
             String email = jwtUtil.extractEmail(token);
             String role = jwtUtil.extractRole(token);
-            
+
             ServerHttpRequest mutated = exchange.getRequest()
                     .mutate()
                     .header("X-User-Id", id)

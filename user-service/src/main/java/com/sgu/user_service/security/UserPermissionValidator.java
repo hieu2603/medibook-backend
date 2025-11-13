@@ -1,7 +1,7 @@
 package com.sgu.user_service.security;
 
-import com.sgu.common.exception.AccessDeniedException;
 import com.sgu.user_service.constant.Role;
+import com.sgu.user_service.exception.AccessDeniedException;
 import com.sgu.user_service.model.User;
 import org.springframework.stereotype.Component;
 

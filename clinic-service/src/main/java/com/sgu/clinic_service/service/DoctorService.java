@@ -1,10 +1,10 @@
 package com.sgu.clinic_service.service;
 
 import com.sgu.clinic_service.constant.DoctorStatus;
+import com.sgu.clinic_service.dto.common.PaginationResponse;
 import com.sgu.clinic_service.dto.request.doctor.DoctorCreateRequestDto;
 import com.sgu.clinic_service.dto.request.doctor.DoctorUpdateRequestDto;
 import com.sgu.clinic_service.dto.response.doctor.DoctorResponseDto;
-import com.sgu.common.dto.PaginationResponse;
 
 import java.util.UUID;
 

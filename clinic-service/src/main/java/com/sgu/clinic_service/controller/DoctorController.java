@@ -1,12 +1,12 @@
 package com.sgu.clinic_service.controller;
 
 import com.sgu.clinic_service.constant.DoctorStatus;
+import com.sgu.clinic_service.dto.common.ApiResponse;
+import com.sgu.clinic_service.dto.common.PaginationResponse;
 import com.sgu.clinic_service.dto.request.doctor.DoctorCreateRequestDto;
 import com.sgu.clinic_service.dto.request.doctor.DoctorUpdateRequestDto;
 import com.sgu.clinic_service.dto.response.doctor.DoctorResponseDto;
 import com.sgu.clinic_service.service.DoctorService;
-import com.sgu.common.dto.ApiResponse;
-import com.sgu.common.dto.PaginationResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

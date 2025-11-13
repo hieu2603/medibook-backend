@@ -1,9 +1,6 @@
 package com.sgu.user_service.exception;
 
-import com.sgu.common.dto.ErrorResponse;
-import com.sgu.common.exception.AccessDeniedException;
-import com.sgu.common.exception.InsufficientBalanceException;
-import com.sgu.common.exception.ResourceNotFoundException;
+import com.sgu.user_service.dto.common.ErrorResponse;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

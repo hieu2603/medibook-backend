@@ -2,13 +2,13 @@ package com.sgu.user_service.service.impl;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
-import com.sgu.common.dto.PaginationMeta;
-import com.sgu.common.dto.PaginationResponse;
-import com.sgu.common.exception.InsufficientBalanceException;
-import com.sgu.common.exception.ResourceNotFoundException;
 import com.sgu.user_service.constant.PaymentType;
+import com.sgu.user_service.dto.common.PaginationMeta;
+import com.sgu.user_service.dto.common.PaginationResponse;
 import com.sgu.user_service.dto.request.PaymentRequestDto;
 import com.sgu.user_service.dto.response.UserResponseDto;
+import com.sgu.user_service.exception.InsufficientBalanceException;
+import com.sgu.user_service.exception.ResourceNotFoundException;
 import com.sgu.user_service.mapper.UserMapper;
 import com.sgu.user_service.model.User;
 import com.sgu.user_service.repository.UserRepository;

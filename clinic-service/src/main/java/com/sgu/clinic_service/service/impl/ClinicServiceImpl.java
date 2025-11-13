@@ -1,16 +1,16 @@
 package com.sgu.clinic_service.service.impl;
 
+import com.sgu.clinic_service.dto.common.PaginationMeta;
+import com.sgu.clinic_service.dto.common.PaginationResponse;
 import com.sgu.clinic_service.dto.request.clinic.ClinicCreateRequestDto;
 import com.sgu.clinic_service.dto.request.clinic.ClinicUpdateRequestDto;
 import com.sgu.clinic_service.dto.response.clinic.ClinicResponseDto;
+import com.sgu.clinic_service.exception.ResourceNotFoundException;
 import com.sgu.clinic_service.mapper.ClinicMapper;
 import com.sgu.clinic_service.model.Clinic;
 import com.sgu.clinic_service.repository.ClinicRepository;
 import com.sgu.clinic_service.security.ClinicPermissionValidator;
 import com.sgu.clinic_service.service.ClinicService;
-import com.sgu.common.dto.PaginationMeta;
-import com.sgu.common.dto.PaginationResponse;
-import com.sgu.common.exception.ResourceNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

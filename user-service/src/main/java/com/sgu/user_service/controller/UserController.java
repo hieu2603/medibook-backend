@@ -1,8 +1,8 @@
 package com.sgu.user_service.controller;
 
-import com.sgu.common.dto.ApiResponse;
-import com.sgu.common.dto.PaginationResponse;
 import com.sgu.user_service.constant.PaymentType;
+import com.sgu.user_service.dto.common.ApiResponse;
+import com.sgu.user_service.dto.common.PaginationResponse;
 import com.sgu.user_service.dto.request.PaymentRequestDto;
 import com.sgu.user_service.dto.response.UserResponseDto;
 import com.sgu.user_service.service.UserService;

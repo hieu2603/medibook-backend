@@ -1,10 +1,10 @@
 package com.sgu.clinic_service.controller;
 
+import com.sgu.clinic_service.dto.common.ApiResponse;
 import com.sgu.clinic_service.dto.request.specialty.SpecialtyCreateRequestDto;
 import com.sgu.clinic_service.dto.request.specialty.SpecialtyUpdateRequestDto;
 import com.sgu.clinic_service.dto.response.specialty.SpecialtyResponseDto;
 import com.sgu.clinic_service.service.SpecialtyService;
-import com.sgu.common.dto.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

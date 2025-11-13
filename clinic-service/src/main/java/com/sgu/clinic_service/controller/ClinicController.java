@@ -1,11 +1,11 @@
 package com.sgu.clinic_service.controller;
 
+import com.sgu.clinic_service.dto.common.ApiResponse;
+import com.sgu.clinic_service.dto.common.PaginationResponse;
 import com.sgu.clinic_service.dto.request.clinic.ClinicCreateRequestDto;
 import com.sgu.clinic_service.dto.request.clinic.ClinicUpdateRequestDto;
 import com.sgu.clinic_service.dto.response.clinic.ClinicResponseDto;
 import com.sgu.clinic_service.service.ClinicService;
-import com.sgu.common.dto.ApiResponse;
-import com.sgu.common.dto.PaginationResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

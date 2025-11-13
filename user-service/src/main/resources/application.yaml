@@ -2,24 +2,25 @@ spring:
   application:
     name: user-service
   datasource:
-    url:
-      jdbc:postgresql://localhost:5432/user_service
+    url: jdbc:postgresql://postgres:5432/user_service
     username: postgres
     password: root
   jpa:
     hibernate:
       ddl-auto: none
     show-sql: true
-  rabbitmq:
-    host: localhost
-    port: 5672
-    username: guest
-    password: guest
 
 cloudinary:
   cloud-name: dt5knfmgk
   api-key: 539942185554519
   api-secret: jv3YpmM9mXJQ3VBfXLK3JhBsSpg
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE}
+    register-with-eureka: true
+    fetch-registry: true
 
 server:
   port: 8082

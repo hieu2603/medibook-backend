@@ -1,0 +1,127 @@
+version: "3.9"
+services:
+  eureka-server:
+    image: eurekaserver:latest
+    container_name: eureka-server
+    build:
+      context: ./discovery-server
+    ports:
+      - "8761:8761"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    networks:
+      - micro-net
+
+  api-gateway:
+    image: api-gateway:latest
+    container_name: api-gateway
+    build:
+      context: ./api-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - eureka-server
+      - auth-service
+      - user-service
+      - clinic-service
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    networks:
+      - micro-net
+
+  auth-service:
+    image: auth-service:latest
+    container_name: auth-service
+    build:
+      context: ./auth-service
+    depends_on:
+      - postgres
+      - rabbitmq
+      - eureka-server
+    environment:
+      - SPRING_APPLICATION_NAME=auth-service
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    networks:
+      - micro-net
+
+  user-service:
+    image: user-service:latest
+    container_name: user-service
+    build:
+      context: ./user-service
+    depends_on:
+      - postgres
+      - eureka-server
+    environment:
+      - SPRING_APPLICATION_NAME=user-service
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    networks:
+      - micro-net
+  
+  clinic-service:
+    image: clinic-service:latest
+    container_name: clinic-service
+    build:
+      context: ./clinic-service
+    depends_on:
+      - postgres
+      - eureka-server
+    environment:
+      - SPRING_APPLICATION_NAME=clinic-service
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    networks:
+      - micro-net
+
+  email-service:
+    image: email-service:latest
+    container_name: email-service
+    build:
+      context: ./email-service
+    depends_on:
+      - rabbitmq
+      - eureka-server
+    environment:
+      - SPRING_APPLICATION_NAME=email-service
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=admin
+      - SPRING_RABBITMQ_PASSWORD=admin
+
+      - SPRING_MAIL_HOST=smtp.gmail.com
+      - SPRING_MAIL_PORT=587
+      - SPRING_MAIL_USERNAME=nguyenvanhieu2603@gmail.com
+      - SPRING_MAIL_PASSWORD=fakluykvswljydzn
+      - SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH=true
+      - SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE=true
+    networks:
+      - micro-net
+
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./init-db:/docker-entrypoint-initdb.d
+    networks:
+      - micro-net
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - micro-net
+
+networks:
+  micro-net:
+    driver: bridge

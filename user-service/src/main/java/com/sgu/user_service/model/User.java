@@ -34,8 +34,13 @@ public class User {
     @Column(name = "avatar_url")
     private String avatarUrl;
 
+    // Số dư có thể rút
     @Column(name = "balance", nullable = false)
     private BigDecimal balance;
+
+    // Số tiền đang giữ cho appointment chưa completed
+    @Column(name = "pending_balance", nullable = false)
+    private BigDecimal pendingBalance;
 
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)

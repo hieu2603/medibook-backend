@@ -1,6 +1,5 @@
 package com.sgu.user_service.controller;
 
-import com.sgu.user_service.constant.PaymentType;
 import com.sgu.user_service.dto.common.ApiResponse;
 import com.sgu.user_service.dto.common.PaginationResponse;
 import com.sgu.user_service.dto.request.PaymentRequestDto;
@@ -68,7 +67,7 @@ public class UserController {
     public ResponseEntity<ApiResponse<String>> updateAvatar(
             @PathVariable(name = "id") UUID targetId,
             @RequestParam("file") MultipartFile file,
-            @RequestHeader("X-User-Id") String userId
+            @RequestHeader("X-User-Id") String userId // me
     ) throws IOException {
         String imageUrl = userService.updateAvatar(
                 targetId,
@@ -92,9 +91,7 @@ public class UserController {
             @PathVariable UUID id,
             @Valid @RequestBody PaymentRequestDto dto
     ) {
-        dto.setUserId(id);
-        dto.setType(PaymentType.DEPOSIT);
-        userService.updateBalance(dto);
+        userService.updateBalance(dto, id);
 
         ApiResponse<Void> response = ApiResponse.<Void>builder()
                 .status(HttpStatus.OK.value())
@@ -111,9 +108,7 @@ public class UserController {
             @PathVariable UUID id,
             @Valid @RequestBody PaymentRequestDto dto
     ) {
-        dto.setUserId(id);
-        dto.setType(PaymentType.WITHDRAW);
-        userService.updateBalance(dto);
+        userService.updateBalance(dto, id);
 
         ApiResponse<Void> response = ApiResponse.<Void>builder()
                 .status(HttpStatus.OK.value())

@@ -41,6 +41,9 @@ public class User {
     @Builder.Default
     private BigDecimal balance = BigDecimal.ZERO;
 
+    @Column(name = "pending_balance", nullable = false)
+    private BigDecimal pendingBalance = BigDecimal.ZERO;
+
     @Column(name = "status", nullable = false)
     @Builder.Default
     @Enumerated(EnumType.STRING)

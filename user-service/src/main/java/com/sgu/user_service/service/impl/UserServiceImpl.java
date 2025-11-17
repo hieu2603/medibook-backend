@@ -3,9 +3,11 @@ package com.sgu.user_service.service.impl;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.sgu.user_service.constant.PaymentType;
+import com.sgu.user_service.constant.TransferType;
 import com.sgu.user_service.dto.common.PaginationMeta;
 import com.sgu.user_service.dto.common.PaginationResponse;
 import com.sgu.user_service.dto.request.PaymentRequestDto;
+import com.sgu.user_service.dto.request.TransferRequestDto;
 import com.sgu.user_service.dto.response.UserResponseDto;
 import com.sgu.user_service.exception.InsufficientBalanceException;
 import com.sgu.user_service.exception.ResourceNotFoundException;
@@ -20,6 +22,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -38,6 +41,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public PaginationResponse<UserResponseDto> getUsers(int page, int size, String role) {
+        // Kiểm tra quuyen
         userPermissionValidator.validateGetUsersPermission(role);
 
         int pageIndex = (page <= 0) ? 0 : page - 1;
@@ -103,12 +107,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void updateBalance(PaymentRequestDto dto) {
-        UUID userId = dto.getUserId();
+    public void updateBalance(PaymentRequestDto dto, UUID id) {
         BigDecimal amount = dto.getAmount();
         PaymentType type = dto.getType();
 
-        User user = userRepository.findById(userId)
+        User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         BigDecimal userBalance = user.getBalance();
@@ -117,12 +120,54 @@ public class UserServiceImpl implements UserService {
             case DEPOSIT -> user.setBalance(userBalance.add(amount));
             case WITHDRAW -> {
                 if (userBalance.compareTo(amount) < 0) {
-                    throw new InsufficientBalanceException("User does not have enough balance to withdraw");
+                    throw new InsufficientBalanceException("Not enough balance to withdraw");
                 }
                 user.setBalance(userBalance.subtract(amount));
             }
         }
 
         userRepository.save(user);
+    }
+
+    @Override
+    @Transactional
+    public void transfer(TransferRequestDto dto) {
+        UUID senderId = dto.getFromUserId();
+        UUID receiverId = dto.getToUserId();
+        BigDecimal amount = dto.getAmount();
+        TransferType type = dto.getType();
+
+        User sender = userRepository.findById(senderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Sender not found"));
+
+        User receiver = userRepository.findById(receiverId)
+                .orElseThrow(() -> new ResourceNotFoundException("Receiver not found"));
+
+        switch (type) {
+            case APPOINTMENT -> {
+                if (sender.getBalance().compareTo(amount) < 0) {
+                    throw new InsufficientBalanceException("Patient does not have enough balance for appointment");
+                }
+                sender.setBalance(sender.getBalance().subtract(amount));
+                receiver.setPendingBalance(receiver.getPendingBalance().add(amount));
+            }
+            case REFUND -> {
+                if (receiver.getPendingBalance().compareTo(amount) < 0) {
+                    throw new InsufficientBalanceException("Clinic does not have enough pending balance to refund");
+                }
+                sender.setBalance(sender.getBalance().add(amount));
+                receiver.setPendingBalance(receiver.getPendingBalance().subtract(amount));
+            }
+            case SETTLE -> {
+                if (receiver.getPendingBalance().compareTo(amount) < 0) {
+                    throw new InsufficientBalanceException("Clinic does not have enough pending balance to settle");
+                }
+                receiver.setPendingBalance(receiver.getPendingBalance().subtract(amount));
+                receiver.setBalance(receiver.getBalance().add(amount));
+            }
+        }
+
+        userRepository.save(sender);
+        userRepository.save(receiver);
     }
 }

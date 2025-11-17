@@ -2,6 +2,7 @@ package com.sgu.user_service.service;
 
 import com.sgu.user_service.dto.common.PaginationResponse;
 import com.sgu.user_service.dto.request.PaymentRequestDto;
+import com.sgu.user_service.dto.request.TransferRequestDto;
 import com.sgu.user_service.dto.response.UserResponseDto;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -18,5 +19,7 @@ public interface UserService {
 
     String updateAvatar(UUID targetId, UUID requesterId, MultipartFile file) throws IOException;
 
-    void updateBalance(PaymentRequestDto dto);
+    void updateBalance(PaymentRequestDto dto, UUID id);
+
+    void transfer(TransferRequestDto dto);
 }

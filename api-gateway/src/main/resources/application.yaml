@@ -54,8 +54,12 @@ gateway:
       methods: [ POST ]
     - path: /api/users/**
       methods: [ POST ]
-    - path: /api/clinics/**
+    - path: /api/clinics
       methods: [ GET, POST ]
+    - path: /api/clinics/{id}
+      methods: [ GET ]
+    - path: /api/clinics/images/{clinicId}
+      methods: [ GET ]
     - path: /api/doctors/**
       methods: [ GET ]
     - path: /api/specialties/**

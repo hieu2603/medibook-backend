@@ -115,10 +115,12 @@ public class ClinicController {
     @PostMapping("/images/{clinicId}")
     public ResponseEntity<ApiResponse<List<String>>> uploadImages(
             @PathVariable UUID clinicId,
-            @RequestParam("files") List<MultipartFile> files
+            @RequestParam("files") List<MultipartFile> files,
+            @RequestHeader("X-User-Id") String userId,
+            @RequestHeader("X-User-Role") String role
     ) throws IOException {
         List<String> urls = clinicImageService
-                .uploadImages(clinicId, files);
+                .uploadImages(clinicId, files, UUID.fromString(userId), role);
 
         ApiResponse<List<String>> response = ApiResponse.<List<String>>builder()
                 .status(HttpStatus.OK.value())
@@ -151,9 +153,11 @@ public class ClinicController {
 
     @DeleteMapping("/images/{imageId}")
     public ResponseEntity<ApiResponse<String>> deleteImage(
-            @PathVariable UUID imageId
+            @PathVariable UUID imageId,
+            @RequestHeader("X-User-Id") String userId,
+            @RequestHeader("X-User-Role") String role
     ) throws IOException {
-        clinicImageService.deleteImage(imageId);
+        clinicImageService.deleteImage(imageId, UUID.fromString(userId), role);
 
         ApiResponse<String> response = ApiResponse.<String>builder()
                 .status(HttpStatus.OK.value())

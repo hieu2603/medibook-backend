@@ -28,7 +28,14 @@ public class ClinicImageServiceImpl implements ClinicImageService {
     private final ClinicPermissionValidator clinicPermissionValidator;
 
     @Override
-    public List<String> uploadImages(UUID clinicId, List<MultipartFile> files) throws IOException {
+    public List<String> uploadImages(
+            UUID clinicId,
+            List<MultipartFile> files,
+            UUID userId,
+            String role
+    ) throws IOException {
+        clinicPermissionValidator.validateUploadImagePermission(clinicId, userId, role);
+
         // Kiểm tra số lượng hiện tại
         List<ClinicImage> existing = clinicImageRepository.findByClinicId(clinicId);
         if (existing.size() + files.size() > 8) {
@@ -64,7 +71,9 @@ public class ClinicImageServiceImpl implements ClinicImageService {
     }
 
     @Override
-    public void deleteImage(UUID imageId) throws IOException {
+    public void deleteImage(UUID imageId, UUID userId, String role) throws IOException {
+        clinicPermissionValidator.validateDeleteImagePermission(imageId, userId, role);
+
         ClinicImage image = clinicImageRepository.findById(imageId)
                 .orElseThrow(() -> new ResourceNotFoundException("Image not found"));
 

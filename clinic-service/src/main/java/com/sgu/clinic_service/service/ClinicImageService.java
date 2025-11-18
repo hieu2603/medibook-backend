@@ -10,10 +10,16 @@ import java.util.UUID;
 public interface ClinicImageService {
     List<String> uploadImages(
             UUID clinicId,
-            List<MultipartFile> files
+            List<MultipartFile> files,
+            UUID userId,
+            String role
     ) throws IOException;
 
     List<ClinicImageResponseDto> getImagesByClinicId(UUID clinicId);
 
-    void deleteImage(UUID imageId) throws IOException;
+    void deleteImage(
+            UUID imageId,
+            UUID userId,
+            String role
+    ) throws IOException;
 }

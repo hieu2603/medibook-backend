@@ -15,11 +15,12 @@ import java.util.UUID;
 public class ClinicImage {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID img_id;
+    @Column(name = "img_id")
+    private UUID imgId;
 
-    @Column(nullable = false)
+    @Column(name = "img_url", nullable = false)
     private String url;
 
-    @Column(nullable = false)
-    private UUID clinic_id;
+    @Column(name = "clinic_id", nullable = false)
+    private UUID clinicId;
 }

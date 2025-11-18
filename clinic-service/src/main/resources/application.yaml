@@ -10,6 +10,11 @@ spring:
       ddl-auto: update
     show-sql: true
 
+cloudinary:
+  cloud-name: dt5knfmgk
+  api-key: 539942185554519
+  api-secret: jv3YpmM9mXJQ3VBfXLK3JhBsSpg
+
 eureka:
   client:
     service-url:

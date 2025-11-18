@@ -42,6 +42,7 @@ public class User {
     private BigDecimal balance = BigDecimal.ZERO;
 
     @Column(name = "pending_balance", nullable = false)
+    @Builder.Default
     private BigDecimal pendingBalance = BigDecimal.ZERO;
 
     @Column(name = "status", nullable = false)

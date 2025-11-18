@@ -67,7 +67,7 @@ public class UserController {
     public ResponseEntity<ApiResponse<String>> updateAvatar(
             @PathVariable(name = "id") UUID targetId,
             @RequestParam("file") MultipartFile file,
-            @RequestHeader("X-User-Id") String userId // me
+            @RequestHeader("X-User-Id") String userId
     ) throws IOException {
         String imageUrl = userService.updateAvatar(
                 targetId,

@@ -23,6 +23,7 @@ services:
       - auth-service
       - user-service
       - clinic-service
+      - patient-service
     environment:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
     networks:
@@ -67,6 +68,20 @@ services:
       - eureka-server
     environment:
       - SPRING_APPLICATION_NAME=clinic-service
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    networks:
+      - micro-net
+
+  patient-service:
+    image: patient-service:latest
+    container_name: patient-service
+    build:
+      context: ./patient-service
+    depends_on:
+      - postgres
+      - eureka-server
+    environment:
+      - SPRING_APPLICATION_NAME=patient-service
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
     networks:
       - micro-net

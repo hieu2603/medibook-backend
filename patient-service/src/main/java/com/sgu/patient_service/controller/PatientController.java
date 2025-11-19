@@ -1,31 +1,21 @@
 package com.sgu.patient_service.controller;
 
-import java.util.List;
-import java.util.UUID;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.sgu.patient_service.dto.request.PatientCreateRequest;
 import com.sgu.patient_service.dto.request.PatientUpdateRequest;
 import com.sgu.patient_service.dto.response.PatientResponseDto;
 import com.sgu.patient_service.dto.response.common.ApiResponse;
-import com.sgu.patient_service.util.PaginationMetaUtils;
 import com.sgu.patient_service.service.PatientService;
-
+import com.sgu.patient_service.util.PaginationMetaUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/patients")
@@ -74,9 +64,15 @@ public class PatientController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<PatientResponseDto>> updatePatient(@PathVariable UUID id,
-            @Valid @RequestBody PatientUpdateRequest patientUpdateRequest) {
-        PatientResponseDto updatedPatient = patientService.updatePatient(id, patientUpdateRequest);
+    public ResponseEntity<ApiResponse<PatientResponseDto>> updatePatient(
+            @PathVariable UUID id,
+            @Valid @RequestBody PatientUpdateRequest patientUpdateRequest,
+            @RequestHeader("X-User-Id") String userId,
+            @RequestHeader("X-User-Role") String role
+    ) {
+        PatientResponseDto updatedPatient = patientService.updatePatient(
+                id, patientUpdateRequest, UUID.fromString(userId), role
+        );
         ApiResponse<PatientResponseDto> body = ApiResponse.<PatientResponseDto>builder()
                 .status(HttpStatus.OK.value())
                 .success(true)

@@ -21,4 +21,5 @@ public class ClinicResponseDto {
     private BigDecimal longitude;
     private String description;
     private BigDecimal price;
+    private UUID userId;
 }

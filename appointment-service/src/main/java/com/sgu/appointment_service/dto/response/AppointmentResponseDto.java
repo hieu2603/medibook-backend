@@ -1,5 +1,6 @@
 package com.sgu.appointment_service.dto.response;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -20,5 +21,7 @@ public class AppointmentResponseDto {
     private UUID clinic_id;
     private LocalDateTime start_time;
     private LocalDateTime end_time;
+    private BigDecimal price;
+    private String description;
     private AppointmentStatus status;
 }

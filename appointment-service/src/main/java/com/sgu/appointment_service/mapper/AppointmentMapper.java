@@ -21,5 +21,8 @@ public interface AppointmentMapper {
 
     AppointmentResponseDto toResponseDto(Appointment entity);
 
+    @Mapping(target = "appointment_id", ignore = true)
+    @Mapping(target = "patient_id", ignore = true)
+    @Mapping(target = "status", ignore = true)
     void updateEntityFromRequest(AppointmentUpdateRequest request, @MappingTarget Appointment entity);
 }

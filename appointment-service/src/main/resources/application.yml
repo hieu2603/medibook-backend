@@ -15,3 +15,12 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+
+user-service:
+  url: http://user-service:8082
+
+patient-service:
+  url: http://patient-service:8084
+
+clinic-service:
+  url: http://clinic-service:8083

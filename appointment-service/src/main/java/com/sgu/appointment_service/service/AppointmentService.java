@@ -14,21 +14,22 @@ import com.sgu.appointment_service.enums.AppointmentStatus;
 
 public interface AppointmentService {
 
-    AppointmentResponseDto createAppointment(AppointmentCreateRequest request);
+    AppointmentResponseDto createAppointment(AppointmentCreateRequest request, UUID userId, String role);
 
-    AppointmentResponseDto getById(UUID appointmentId);
+    AppointmentResponseDto getById(UUID appointmentId, UUID userId, String role);
 
     Page<AppointmentResponseDto> search(UUID patientId, UUID doctorId, UUID clinicId, AppointmentStatus status,
             LocalDateTime startFrom, LocalDateTime startTo, LocalDateTime endFrom, LocalDateTime endTo,
             Pageable pageable);
 
-    AppointmentResponseDto updateAppointment(UUID appointmentId, AppointmentUpdateRequest request);
+    AppointmentResponseDto updateAppointment(UUID appointmentId, AppointmentUpdateRequest request, UUID userId,
+            String role);
 
-    void deleteAppointment(UUID appointmentId);
+    void deleteAppointment(UUID appointmentId, UUID userId, String role);
 
-    AppointmentResponseDto updateStatus(UUID appointmentId, AppointmentStatus status);
+    AppointmentResponseDto updateStatus(UUID appointmentId, AppointmentStatus status, UUID userId, String role);
 
-    AppointmentResponseDto reschedule(UUID appointmentId, RescheduleRequest request);
+    AppointmentResponseDto reschedule(UUID appointmentId, RescheduleRequest request, UUID userId, String role);
 
     boolean isAvailable(UUID clinicId, UUID doctorId, LocalDateTime startTime, LocalDateTime endTime);
 }

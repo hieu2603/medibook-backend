@@ -9,7 +9,7 @@ public final class PaginationMetaUtils {
 
     public static PaginationMeta from(Page<?> page) {
         return PaginationMeta.builder()
-                .currentPage(page.getNumber())
+                .currentPage(page.getTotalElements() == 0 ? 0 : page.getNumber() + 1)
                 .pageSize(page.getSize())
                 .totalPages(page.getTotalPages())
                 .totalItems(page.getTotalElements())

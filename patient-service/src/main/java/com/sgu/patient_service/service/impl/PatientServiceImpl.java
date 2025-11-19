@@ -1,61 +1,64 @@
 package com.sgu.patient_service.service.impl;
 
-import java.util.UUID;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-
 import com.sgu.patient_service.dto.request.PatientCreateRequest;
 import com.sgu.patient_service.dto.request.PatientUpdateRequest;
 import com.sgu.patient_service.dto.response.PatientResponseDto;
 import com.sgu.patient_service.exception.PatientNotFoundException;
 import com.sgu.patient_service.mapper.PatientMapper;
 import com.sgu.patient_service.model.Patient;
-import com.sgu.patient_service.repository.PatientReposistory;
+import com.sgu.patient_service.repository.PatientRepository;
+import com.sgu.patient_service.security.PatientPermissionValidator;
 import com.sgu.patient_service.service.PatientService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class PatientServiceImpl implements PatientService {
 
-    private final PatientReposistory patientRepository;
-    private final PatientMapper patientMapper;
-
-    public PatientServiceImpl(PatientReposistory patientRepository, PatientMapper patientMapper) {
-        this.patientRepository = patientRepository;
-        this.patientMapper = patientMapper;
-    }
+    private final PatientRepository patientRepository;
+    private final PatientPermissionValidator patientPermissionValidator;
 
     @Override
     public PatientResponseDto createPatient(PatientCreateRequest patientCreateRequest) {
-        Patient patient = patientMapper.toEntity(patientCreateRequest);
-        System.err.println("Tesst");
+        Patient patient = PatientMapper.toEntity(patientCreateRequest);
         Patient savedPatient = patientRepository.save(patient);
-        return patientMapper.toResponseDto(savedPatient);
+        return PatientMapper.toDto(savedPatient);
     }
 
     @Override
     public PatientResponseDto getPatientById(UUID patientId) {
         Patient patient = patientRepository.findById(patientId)
                 .orElseThrow(() -> new PatientNotFoundException(patientId));
-        return patientMapper.toResponseDto(patient);
+        return PatientMapper.toDto(patient);
     }
 
     @Override
     public Page<PatientResponseDto> getAllPatients(Pageable pageable) {
         Page<Patient> patients = patientRepository.findAll(pageable);
-        return patients.map(patientMapper::toResponseDto);
+        return patients.map(PatientMapper::toDto);
     }
 
     @Override
-    public PatientResponseDto updatePatient(UUID patientId, PatientUpdateRequest patientUpdateRequest) {
+    public PatientResponseDto updatePatient(
+            UUID patientId,
+            PatientUpdateRequest patientUpdateRequest,
+            UUID userId,
+            String role
+    ) {
         Patient existingPatient = patientRepository.findById(patientId)
                 .orElseThrow(() -> new PatientNotFoundException(patientId));
 
-        patientMapper.updateEntityFromRequest(patientUpdateRequest, existingPatient);
+        patientPermissionValidator.validateUpdatePatientPermission(existingPatient, userId, role);
+
+        PatientMapper.updateEntity(existingPatient, patientUpdateRequest);
 
         Patient updatedPatient = patientRepository.save(existingPatient);
-        return patientMapper.toResponseDto(updatedPatient);
+        return PatientMapper.toDto(updatedPatient);
     }
 
     @Override
@@ -68,7 +71,18 @@ public class PatientServiceImpl implements PatientService {
 
     @Override
     public Page<PatientResponseDto> searchPatients(String name, String phone, Pageable pageable) {
-        Page<Patient> patients = patientRepository.findByNameAndPhone(name, phone, pageable);
-        return patients.map(patientMapper::toResponseDto);
+        Page<Patient> patients;
+
+        if (name != null && !name.isBlank() && phone != null && !phone.isBlank()) {
+            patients = patientRepository.findByNameOrPhone(name.trim(), phone.trim(), pageable);
+        } else if (name != null && !name.isBlank()) {
+            patients = patientRepository.findByName(name.trim(), pageable);
+        } else if (phone != null && !phone.isBlank()) {
+            patients = patientRepository.findByPhone(phone.trim(), pageable);
+        } else {
+            patients = patientRepository.findAll(pageable);
+        }
+
+        return patients.map(PatientMapper::toDto);
     }
 }

@@ -27,6 +27,7 @@ public class ClinicMapper {
                 .longitude(clinic.getLongitude())
                 .description(clinic.getDescription())
                 .price(clinic.getPrice())
+                .userId(clinic.getUserId())
                 .build();
     }
 

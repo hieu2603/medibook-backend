@@ -1,19 +1,20 @@
 package com.sgu.patient_service.dto.request;
 
 import java.time.LocalDate;
-import java.util.UUID;
 
 import com.sgu.patient_service.enums.PatientGender;
 
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import jakarta.validation.constraints.Past;
+import lombok.Builder;
 import lombok.Data;
 
 @Data
+@Builder
 public class PatientUpdateRequest {
     @Size(max = 255, message = "Full name must not exceed 255 characters")
-    private String full_name;
+    private String fullName;
 
     @Past(message = "Date of birth must be in the past")
     private LocalDate dob;
@@ -25,6 +26,4 @@ public class PatientUpdateRequest {
 
     @Size(max = 255, message = "Address must not exceed 255 characters")
     private String address;
-
-    private UUID user_id;
 }

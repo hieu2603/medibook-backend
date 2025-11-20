@@ -69,6 +69,28 @@ Examples:
 }
 ```
 
+- Access Denied (403):
+
+```json
+{
+  "status": 403,
+  "success": false,
+  "error": "Forbidden",
+  "message": "You are not allowed to update this appointment"
+}
+```
+
+- Insufficient Balance (400):
+
+```json
+{
+  "status": 400,
+  "success": false,
+  "error": "Insufficient Balance",
+  "message": "Patient does not have enough balance for appointment"
+}
+```
+
 ---
 
 ## Endpoints
@@ -81,13 +103,15 @@ Creates a new appointment.
 
 #### Request Body
 
-| Field        | Type      | Required | Validation      | Description                  |
-| ------------ | --------- | -------- | --------------- | ---------------------------- |
-| `patient_id` | UUID      | Yes      | NotNull         | Patient identifier           |
-| `doctor_id`  | UUID      | No       | -               | Doctor identifier (optional) |
-| `clinic_id`  | UUID      | Yes      | NotNull         | Clinic identifier            |
-| `start_time` | Date-Time | Yes      | NotNull, Future | ISO 8601 start time          |
-| `end_time`   | Date-Time | Yes      | NotNull, Future | ISO 8601 end time            |
+| Field         | Type       | Required | Validation      | Description                  |
+| ------------- | ---------- | -------- | --------------- | ---------------------------- |
+| `patient_id`  | UUID       | Yes      | NotNull         | Patient identifier           |
+| `doctor_id`   | UUID       | No       | -               | Doctor identifier (optional) |
+| `clinic_id`   | UUID       | Yes      | NotNull         | Clinic identifier            |
+| `start_time`  | Date-Time  | Yes      | NotNull, Future | ISO 8601 start time          |
+| `end_time`    | Date-Time  | Yes      | NotNull, Future | ISO 8601 end time            |
+| `price`       | BigDecimal | Yes      | NotNull, >= 0   | Appointment price            |
+| `description` | String     | No       | -               | Appointment description      |
 
 #### Example Request Body
 
@@ -97,9 +121,13 @@ Creates a new appointment.
   "doctor_id": "550e8400-e29b-41d4-a716-446655440001",
   "clinic_id": "550e8400-e29b-41d4-a716-446655440002",
   "start_time": "2025-12-01T09:00:00",
-  "end_time": "2025-12-01T09:30:00"
+  "end_time": "2025-12-01T09:30:00",
+  "price": 500000,
+  "description": "Regular checkup"
 }
 ```
+
+**Note:** Payment is automatically deducted from patient's balance when appointment is created.
 
 #### Response
 
@@ -120,6 +148,8 @@ Creates a new appointment.
     "clinic_id": "550e8400-e29b-41d4-a716-446655440002",
     "start_time": "2025-12-01T09:00:00",
     "end_time": "2025-12-01T09:30:00",
+    "price": 500000,
+    "description": "Regular checkup",
     "status": "PENDING"
   }
 }
@@ -158,6 +188,8 @@ Retrieves a specific appointment.
     "clinic_id": "550e8400-e29b-41d4-a716-446655440002",
     "start_time": "2025-12-01T09:00:00",
     "end_time": "2025-12-01T09:30:00",
+    "price": 500000,
+    "description": "Regular checkup",
     "status": "PENDING"
   }
 }
@@ -333,12 +365,14 @@ Updates an existing appointment.
 
 #### Request Body
 
-| Field        | Type      | Required | Validation | Description         |
-| ------------ | --------- | -------- | ---------- | ------------------- |
-| `doctor_id`  | UUID      | No       | -          | Doctor identifier   |
-| `clinic_id`  | UUID      | No       | -          | Clinic identifier   |
-| `start_time` | Date-Time | No       | Future     | ISO 8601 start time |
-| `end_time`   | Date-Time | No       | Future     | ISO 8601 end time   |
+| Field         | Type       | Required | Validation | Description             |
+| ------------- | ---------- | -------- | ---------- | ----------------------- |
+| `doctor_id`   | UUID       | No       | -          | Doctor identifier       |
+| `clinic_id`   | UUID       | No       | -          | Clinic identifier       |
+| `start_time`  | Date-Time  | No       | Future     | ISO 8601 start time     |
+| `end_time`    | Date-Time  | No       | Future     | ISO 8601 end time       |
+| `price`       | BigDecimal | No       | >= 0       | Appointment price       |
+| `description` | String     | No       | -          | Appointment description |
 
 Note: All fields are optional; only provided fields will be updated.
 
@@ -349,7 +383,9 @@ Note: All fields are optional; only provided fields will be updated.
   "doctor_id": "550e8400-e29b-41d4-a716-446655440001",
   "clinic_id": "550e8400-e29b-41d4-a716-446655440002",
   "start_time": "2025-12-01T14:00:00",
-  "end_time": "2025-12-01T14:30:00"
+  "end_time": "2025-12-01T14:30:00",
+  "price": 600000,
+  "description": "Updated description"
 }
 ```
 
@@ -722,6 +758,8 @@ Uses standard pagination (`page`, `size`, `sort`).
   "clinic_id": "UUID",
   "start_time": "Date-Time (ISO 8601)",
   "end_time": "Date-Time (ISO 8601)",
+  "price": "BigDecimal",
+  "description": "String (nullable)",
   "status": "PENDING | CONFIRMED | CANCELLED | COMPLETED"
 }
 ```
@@ -734,7 +772,9 @@ Uses standard pagination (`page`, `size`, `sort`).
   "doctor_id": "UUID (optional)",
   "clinic_id": "UUID (required)",
   "start_time": "Date-Time (required, future, ISO 8601)",
-  "end_time": "Date-Time (required, future, ISO 8601)"
+  "end_time": "Date-Time (required, future, ISO 8601)",
+  "price": "BigDecimal (required, >= 0)",
+  "description": "String (optional)"
 }
 ```
 
@@ -745,7 +785,9 @@ Uses standard pagination (`page`, `size`, `sort`).
   "doctor_id": "UUID (optional)",
   "clinic_id": "UUID (optional)",
   "start_time": "Date-Time (optional, future, ISO 8601)",
-  "end_time": "Date-Time (optional, future, ISO 8601)"
+  "end_time": "Date-Time (optional, future, ISO 8601)",
+  "price": "BigDecimal (optional, >= 0)",
+  "description": "String (optional)"
 }
 ```
 
@@ -821,6 +863,7 @@ Uses standard pagination (`page`, `size`, `sort`).
 - Time slot conflicts are only checked against `CONFIRMED` appointments.
 - The service validates that `start_time` is before `end_time` and in the future.
 - All endpoints return consistent `ApiResponse` envelope format.
+- **Payment**: Payment is automatically deducted from patient's balance when appointment is created.
 
 ## Service Architecture
 

@@ -1,5 +1,6 @@
 package com.sgu.appointment_service.model;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -43,6 +44,12 @@ public class Appointment {
 
     @Column(name = "end_time", nullable = false)
     private LocalDateTime end_time;
+
+    @Column(name = "price", nullable = false, precision = 11, scale = 2)
+    private BigDecimal price;
+
+    @Column(name = "description", columnDefinition = "TEXT")
+    private String description;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)

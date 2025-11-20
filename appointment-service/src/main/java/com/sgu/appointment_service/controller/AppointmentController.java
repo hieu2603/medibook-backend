@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -42,8 +43,11 @@ public class AppointmentController {
 
         @PostMapping
         public ResponseEntity<ApiResponse<AppointmentResponseDto>> create(
-                        @Valid @RequestBody AppointmentCreateRequest request) {
-                AppointmentResponseDto created = appointmentService.createAppointment(request);
+                        @Valid @RequestBody AppointmentCreateRequest request,
+                        @RequestHeader("X-User-Id") String userId,
+                        @RequestHeader("X-User-Role") String role) {
+                AppointmentResponseDto created = appointmentService.createAppointment(request, UUID.fromString(userId),
+                                role);
                 ApiResponse<AppointmentResponseDto> body = ApiResponse.<AppointmentResponseDto>builder()
                                 .status(HttpStatus.CREATED.value())
                                 .success(true)
@@ -54,8 +58,11 @@ public class AppointmentController {
         }
 
         @GetMapping("/{id}")
-        public ResponseEntity<ApiResponse<AppointmentResponseDto>> getById(@PathVariable UUID id) {
-                AppointmentResponseDto dto = appointmentService.getById(id);
+        public ResponseEntity<ApiResponse<AppointmentResponseDto>> getById(
+                        @PathVariable UUID id,
+                        @RequestHeader("X-User-Id") String userId,
+                        @RequestHeader("X-User-Role") String role) {
+                AppointmentResponseDto dto = appointmentService.getById(id, UUID.fromString(userId), role);
                 ApiResponse<AppointmentResponseDto> body = ApiResponse.<AppointmentResponseDto>builder()
                                 .status(HttpStatus.OK.value())
                                 .success(true)
@@ -128,9 +135,13 @@ public class AppointmentController {
         }
 
         @PutMapping("/{id}")
-        public ResponseEntity<ApiResponse<AppointmentResponseDto>> updateAppointment(@PathVariable UUID id,
-                        @Valid @RequestBody AppointmentUpdateRequest request) {
-                AppointmentResponseDto updated = appointmentService.updateAppointment(id, request);
+        public ResponseEntity<ApiResponse<AppointmentResponseDto>> updateAppointment(
+                        @PathVariable UUID id,
+                        @Valid @RequestBody AppointmentUpdateRequest request,
+                        @RequestHeader("X-User-Id") String userId,
+                        @RequestHeader("X-User-Role") String role) {
+                AppointmentResponseDto updated = appointmentService.updateAppointment(id, request,
+                                UUID.fromString(userId), role);
                 ApiResponse<AppointmentResponseDto> body = ApiResponse.<AppointmentResponseDto>builder()
                                 .status(HttpStatus.OK.value())
                                 .success(true)
@@ -141,9 +152,13 @@ public class AppointmentController {
         }
 
         @PostMapping("/{id}/reschedule")
-        public ResponseEntity<ApiResponse<AppointmentResponseDto>> rescheduleAppointment(@PathVariable UUID id,
-                        @Valid @RequestBody RescheduleRequest request) {
-                AppointmentResponseDto updated = appointmentService.reschedule(id, request);
+        public ResponseEntity<ApiResponse<AppointmentResponseDto>> rescheduleAppointment(
+                        @PathVariable UUID id,
+                        @Valid @RequestBody RescheduleRequest request,
+                        @RequestHeader("X-User-Id") String userId,
+                        @RequestHeader("X-User-Role") String role) {
+                AppointmentResponseDto updated = appointmentService.reschedule(id, request, UUID.fromString(userId),
+                                role);
                 ApiResponse<AppointmentResponseDto> body = ApiResponse.<AppointmentResponseDto>builder()
                                 .status(HttpStatus.OK.value())
                                 .success(true)
@@ -154,9 +169,13 @@ public class AppointmentController {
         }
 
         @PatchMapping("/{id}/status")
-        public ResponseEntity<ApiResponse<AppointmentResponseDto>> updateAppointmentStatus(@PathVariable UUID id,
-                        @Valid @RequestBody StatusUpdateRequest request) {
-                AppointmentResponseDto updated = appointmentService.updateStatus(id, request.getStatus());
+        public ResponseEntity<ApiResponse<AppointmentResponseDto>> updateAppointmentStatus(
+                        @PathVariable UUID id,
+                        @Valid @RequestBody StatusUpdateRequest request,
+                        @RequestHeader("X-User-Id") String userId,
+                        @RequestHeader("X-User-Role") String role) {
+                AppointmentResponseDto updated = appointmentService.updateStatus(id, request.getStatus(),
+                                UUID.fromString(userId), role);
                 ApiResponse<AppointmentResponseDto> body = ApiResponse.<AppointmentResponseDto>builder()
                                 .status(HttpStatus.OK.value())
                                 .success(true)
@@ -167,8 +186,12 @@ public class AppointmentController {
         }
 
         @PostMapping("/{id}/confirm")
-        public ResponseEntity<ApiResponse<AppointmentResponseDto>> confirmAppointment(@PathVariable UUID id) {
-                AppointmentResponseDto updated = appointmentService.updateStatus(id, AppointmentStatus.CONFIRMED);
+        public ResponseEntity<ApiResponse<AppointmentResponseDto>> confirmAppointment(
+                        @PathVariable UUID id,
+                        @RequestHeader("X-User-Id") String userId,
+                        @RequestHeader("X-User-Role") String role) {
+                AppointmentResponseDto updated = appointmentService.updateStatus(id, AppointmentStatus.CONFIRMED,
+                                UUID.fromString(userId), role);
                 ApiResponse<AppointmentResponseDto> body = ApiResponse.<AppointmentResponseDto>builder()
                                 .status(HttpStatus.OK.value())
                                 .success(true)
@@ -179,8 +202,12 @@ public class AppointmentController {
         }
 
         @PostMapping("/{id}/cancel")
-        public ResponseEntity<ApiResponse<AppointmentResponseDto>> cancelAppointment(@PathVariable UUID id) {
-                AppointmentResponseDto updated = appointmentService.updateStatus(id, AppointmentStatus.CANCELLED);
+        public ResponseEntity<ApiResponse<AppointmentResponseDto>> cancelAppointment(
+                        @PathVariable UUID id,
+                        @RequestHeader("X-User-Id") String userId,
+                        @RequestHeader("X-User-Role") String role) {
+                AppointmentResponseDto updated = appointmentService.updateStatus(id, AppointmentStatus.CANCELLED,
+                                UUID.fromString(userId), role);
                 ApiResponse<AppointmentResponseDto> body = ApiResponse.<AppointmentResponseDto>builder()
                                 .status(HttpStatus.OK.value())
                                 .success(true)
@@ -191,8 +218,12 @@ public class AppointmentController {
         }
 
         @PostMapping("/{id}/complete")
-        public ResponseEntity<ApiResponse<AppointmentResponseDto>> completeAppointment(@PathVariable UUID id) {
-                AppointmentResponseDto updated = appointmentService.updateStatus(id, AppointmentStatus.COMPLETED);
+        public ResponseEntity<ApiResponse<AppointmentResponseDto>> completeAppointment(
+                        @PathVariable UUID id,
+                        @RequestHeader("X-User-Id") String userId,
+                        @RequestHeader("X-User-Role") String role) {
+                AppointmentResponseDto updated = appointmentService.updateStatus(id, AppointmentStatus.COMPLETED,
+                                UUID.fromString(userId), role);
                 ApiResponse<AppointmentResponseDto> body = ApiResponse.<AppointmentResponseDto>builder()
                                 .status(HttpStatus.OK.value())
                                 .success(true)
@@ -203,8 +234,11 @@ public class AppointmentController {
         }
 
         @DeleteMapping("/{id}")
-        public ResponseEntity<ApiResponse<Void>> deleteAppointment(@PathVariable UUID id) {
-                appointmentService.deleteAppointment(id);
+        public ResponseEntity<ApiResponse<Void>> deleteAppointment(
+                        @PathVariable UUID id,
+                        @RequestHeader("X-User-Id") String userId,
+                        @RequestHeader("X-User-Role") String role) {
+                appointmentService.deleteAppointment(id, UUID.fromString(userId), role);
                 ApiResponse<Void> body = ApiResponse.<Void>builder()
                                 .status(HttpStatus.NO_CONTENT.value())
                                 .success(true)

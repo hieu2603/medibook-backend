@@ -1,6 +1,7 @@
 package com.sgu.appointment_service.exception;
 
 import com.sgu.appointment_service.dto.response.common.ErrorResponse;
+import feign.FeignException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -37,6 +38,56 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
+                .body(errorResponse);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException e) {
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .status(HttpStatus.FORBIDDEN.value())
+                .success(false)
+                .error("Forbidden")
+                .message(e.getMessage())
+                .build();
+
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(errorResponse);
+    }
+
+    @ExceptionHandler(InsufficientBalanceException.class)
+    public ResponseEntity<ErrorResponse> handleInsufficientBalanceException(InsufficientBalanceException e) {
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .status(HttpStatus.BAD_REQUEST.value())
+                .success(false)
+                .error("Insufficient Balance")
+                .message(e.getMessage())
+                .build();
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(errorResponse);
+    }
+
+    @ExceptionHandler(FeignException.class)
+    public ResponseEntity<ErrorResponse> handleFeignException(FeignException e) {
+        String message = "External service error";
+        if (e.getMessage() != null) {
+            message = e.getMessage();
+        }
+        
+        int statusCode = e.status() > 0 ? e.status() : HttpStatus.INTERNAL_SERVER_ERROR.value();
+        HttpStatus httpStatus = e.status() > 0 ? HttpStatus.valueOf(e.status()) : HttpStatus.INTERNAL_SERVER_ERROR;
+        
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .status(statusCode)
+                .success(false)
+                .error("Service Unavailable")
+                .message(message)
+                .build();
+
+        return ResponseEntity
+                .status(httpStatus)
                 .body(errorResponse);
     }
 

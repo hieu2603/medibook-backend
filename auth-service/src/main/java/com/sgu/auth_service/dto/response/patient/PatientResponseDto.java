@@ -1,24 +1,20 @@
-package com.sgu.appointment_service.dto.response;
+package com.sgu.auth_service.dto.response.patient;
 
-import lombok.AllArgsConstructor;
+import com.sgu.auth_service.constant.PatientGender;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.util.UUID;
 
 @Data
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class PatientResponseDto {
     private UUID id;
     private String fullName;
     private LocalDate dob;
-    private String gender;
+    private PatientGender gender;
     private String phone;
     private String address;
     private UUID userId;
 }
-

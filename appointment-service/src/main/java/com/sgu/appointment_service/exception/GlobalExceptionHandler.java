@@ -69,16 +69,58 @@ public class GlobalExceptionHandler {
                 .body(errorResponse);
     }
 
+    @ExceptionHandler(InvalidTimeRangeException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidTimeRangeException(InvalidTimeRangeException e) {
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .status(HttpStatus.BAD_REQUEST.value())
+                .success(false)
+                .error("Invalid Time Range")
+                .message(e.getMessage())
+                .build();
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(errorResponse);
+    }
+
+    @ExceptionHandler(AppointmentConflictException.class)
+    public ResponseEntity<ErrorResponse> handleAppointmentConflictException(AppointmentConflictException e) {
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .status(HttpStatus.CONFLICT.value())
+                .success(false)
+                .error("Conflict")
+                .message(e.getMessage())
+                .build();
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(errorResponse);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException e) {
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .status(HttpStatus.BAD_REQUEST.value())
+                .success(false)
+                .error("Bad Request")
+                .message(e.getMessage())
+                .build();
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(errorResponse);
+    }
+
     @ExceptionHandler(FeignException.class)
     public ResponseEntity<ErrorResponse> handleFeignException(FeignException e) {
         String message = "External service error";
         if (e.getMessage() != null) {
             message = e.getMessage();
         }
-        
+
         int statusCode = e.status() > 0 ? e.status() : HttpStatus.INTERNAL_SERVER_ERROR.value();
         HttpStatus httpStatus = e.status() > 0 ? HttpStatus.valueOf(e.status()) : HttpStatus.INTERNAL_SERVER_ERROR;
-        
+
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .status(statusCode)
                 .success(false)

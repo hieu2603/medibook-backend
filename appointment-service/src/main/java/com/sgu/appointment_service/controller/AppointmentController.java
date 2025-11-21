@@ -1,283 +1,169 @@
 package com.sgu.appointment_service.controller;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import com.sgu.appointment_service.constant.AppointmentStatus;
+import com.sgu.appointment_service.dto.request.AppointmentCreateRequest;
+import com.sgu.appointment_service.dto.request.AppointmentUpdateRequest;
+import com.sgu.appointment_service.dto.response.appointment.AppointmentResponseDto;
+import com.sgu.appointment_service.dto.response.common.ApiResponse;
+import com.sgu.appointment_service.dto.response.common.PaginationResponse;
+import com.sgu.appointment_service.dto.response.doctor.DoctorAvailableResponse;
+import com.sgu.appointment_service.service.AppointmentService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.sgu.appointment_service.dto.request.AppointmentCreateRequest;
-import com.sgu.appointment_service.dto.request.AppointmentUpdateRequest;
-import com.sgu.appointment_service.dto.request.RescheduleRequest;
-import com.sgu.appointment_service.dto.request.StatusUpdateRequest;
-import com.sgu.appointment_service.dto.response.AppointmentResponseDto;
-import com.sgu.appointment_service.dto.response.common.ApiResponse;
-import com.sgu.appointment_service.enums.AppointmentStatus;
-import com.sgu.appointment_service.service.AppointmentService;
-import com.sgu.appointment_service.util.PaginationMetaUtils;
-
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/appointments")
 @RequiredArgsConstructor
 public class AppointmentController {
 
-        private final AppointmentService appointmentService;
+    private final AppointmentService appointmentService;
 
-        @PostMapping
-        public ResponseEntity<ApiResponse<AppointmentResponseDto>> create(
-                        @Valid @RequestBody AppointmentCreateRequest request,
-                        @RequestHeader("X-User-Id") String userId,
-                        @RequestHeader("X-User-Role") String role) {
-                AppointmentResponseDto created = appointmentService.createAppointment(request, UUID.fromString(userId),
-                                role);
-                ApiResponse<AppointmentResponseDto> body = ApiResponse.<AppointmentResponseDto>builder()
-                                .status(HttpStatus.CREATED.value())
-                                .success(true)
-                                .message("Appointment created successfully")
-                                .data(created)
-                                .build();
-                return new ResponseEntity<>(body, HttpStatus.CREATED);
-        }
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<AppointmentResponseDto>>> getAppointments(
+            @RequestParam(required = false) UUID patientId,
+            @RequestParam(required = false) UUID clinicId,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startTime,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endTime,
+            @RequestParam(required = false) AppointmentStatus status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        PaginationResponse<AppointmentResponseDto> result = appointmentService
+                .getAppointments(patientId, clinicId, startTime, endTime, status, page, size);
 
-        @GetMapping("/{id}")
-        public ResponseEntity<ApiResponse<AppointmentResponseDto>> getById(
-                        @PathVariable UUID id,
-                        @RequestHeader("X-User-Id") String userId,
-                        @RequestHeader("X-User-Role") String role) {
-                AppointmentResponseDto dto = appointmentService.getById(id, UUID.fromString(userId), role);
-                ApiResponse<AppointmentResponseDto> body = ApiResponse.<AppointmentResponseDto>builder()
-                                .status(HttpStatus.OK.value())
-                                .success(true)
-                                .message("Appointment fetched successfully")
-                                .data(dto)
-                                .build();
-                return new ResponseEntity<>(body, HttpStatus.OK);
-        }
+        ApiResponse<List<AppointmentResponseDto>> response = ApiResponse.<List<AppointmentResponseDto>>builder()
+                .status(HttpStatus.OK.value())
+                .success(true)
+                .message("Appointments retrieved successfully")
+                .data(result.getData())
+                .meta(result.getMeta())
+                .build();
 
-        @GetMapping
-        public ResponseEntity<ApiResponse<List<AppointmentResponseDto>>> getAllAppointments(
-                        @RequestParam(required = false) UUID patient_id,
-                        @RequestParam(required = false) UUID doctor_id,
-                        @RequestParam(required = false) UUID clinic_id,
-                        @RequestParam(required = false) AppointmentStatus status,
-                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start_from,
-                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start_to,
-                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end_from,
-                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end_to,
-                        Pageable pageable) {
-                Page<AppointmentResponseDto> page = appointmentService.search(patient_id, doctor_id, clinic_id, status,
-                                start_from, start_to, end_from, end_to, pageable);
-                ApiResponse<List<AppointmentResponseDto>> body = ApiResponse.<List<AppointmentResponseDto>>builder()
-                                .status(HttpStatus.OK.value())
-                                .success(true)
-                                .message("Appointments fetched successfully")
-                                .data(page.getContent())
-                                .meta(PaginationMetaUtils.from(page))
-                                .build();
-                return new ResponseEntity<>(body, HttpStatus.OK);
-        }
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(response);
+    }
 
-        @GetMapping("/search")
-        public ResponseEntity<ApiResponse<List<AppointmentResponseDto>>> searchAppointments(
-                        @RequestParam(required = false) UUID patient_id,
-                        @RequestParam(required = false) UUID doctor_id,
-                        @RequestParam(required = false) UUID clinic_id,
-                        @RequestParam(required = false) AppointmentStatus status,
-                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start_from,
-                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start_to,
-                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end_from,
-                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end_to,
-                        Pageable pageable) {
-                Page<AppointmentResponseDto> page = appointmentService.search(patient_id, doctor_id, clinic_id, status,
-                                start_from, start_to, end_from, end_to, pageable);
-                ApiResponse<List<AppointmentResponseDto>> body = ApiResponse.<List<AppointmentResponseDto>>builder()
-                                .status(HttpStatus.OK.value())
-                                .success(true)
-                                .message("Appointments fetched successfully")
-                                .data(page.getContent())
-                                .meta(PaginationMetaUtils.from(page))
-                                .build();
-                return new ResponseEntity<>(body, HttpStatus.OK);
-        }
+    @PostMapping
+    public ResponseEntity<ApiResponse<AppointmentResponseDto>> createAppointment(
+            @Valid @RequestBody AppointmentCreateRequest dto
+    ) {
+        AppointmentResponseDto createdAppointment = appointmentService
+                .createAppointment(dto);
 
-        @GetMapping("/availability/doctor")
-        public ResponseEntity<ApiResponse<Boolean>> checkAvailability(
-                        @RequestParam UUID clinic_id,
-                        @RequestParam(required = false) UUID doctor_id,
-                        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start_time,
-                        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end_time) {
-                boolean available = appointmentService.isAvailable(clinic_id, doctor_id, start_time, end_time);
-                ApiResponse<Boolean> body = ApiResponse.<Boolean>builder()
-                                .status(HttpStatus.OK.value())
-                                .success(true)
-                                .message("Availability checked successfully")
-                                .data(available)
-                                .build();
-                return new ResponseEntity<>(body, HttpStatus.OK);
-        }
+        ApiResponse<AppointmentResponseDto> response = ApiResponse.<AppointmentResponseDto>builder()
+                .status(HttpStatus.CREATED.value())
+                .success(true)
+                .message("Appointment created successfully")
+                .data(createdAppointment)
+                .build();
 
-        @PutMapping("/{id}")
-        public ResponseEntity<ApiResponse<AppointmentResponseDto>> updateAppointment(
-                        @PathVariable UUID id,
-                        @Valid @RequestBody AppointmentUpdateRequest request,
-                        @RequestHeader("X-User-Id") String userId,
-                        @RequestHeader("X-User-Role") String role) {
-                AppointmentResponseDto updated = appointmentService.updateAppointment(id, request,
-                                UUID.fromString(userId), role);
-                ApiResponse<AppointmentResponseDto> body = ApiResponse.<AppointmentResponseDto>builder()
-                                .status(HttpStatus.OK.value())
-                                .success(true)
-                                .message("Appointment updated successfully")
-                                .data(updated)
-                                .build();
-                return new ResponseEntity<>(body, HttpStatus.OK);
-        }
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(response);
+    }
 
-        @PostMapping("/{id}/reschedule")
-        public ResponseEntity<ApiResponse<AppointmentResponseDto>> rescheduleAppointment(
-                        @PathVariable UUID id,
-                        @Valid @RequestBody RescheduleRequest request,
-                        @RequestHeader("X-User-Id") String userId,
-                        @RequestHeader("X-User-Role") String role) {
-                AppointmentResponseDto updated = appointmentService.reschedule(id, request, UUID.fromString(userId),
-                                role);
-                ApiResponse<AppointmentResponseDto> body = ApiResponse.<AppointmentResponseDto>builder()
-                                .status(HttpStatus.OK.value())
-                                .success(true)
-                                .message("Appointment rescheduled successfully")
-                                .data(updated)
-                                .build();
-                return new ResponseEntity<>(body, HttpStatus.OK);
-        }
+    @PatchMapping("/{appointmentId}/confirm")
+    public ResponseEntity<ApiResponse<Void>> confirmAppointment(
+            @PathVariable UUID appointmentId
+    ) {
+        appointmentService.confirmAppointment(appointmentId);
 
-        @PatchMapping("/{id}/status")
-        public ResponseEntity<ApiResponse<AppointmentResponseDto>> updateAppointmentStatus(
-                        @PathVariable UUID id,
-                        @Valid @RequestBody StatusUpdateRequest request,
-                        @RequestHeader("X-User-Id") String userId,
-                        @RequestHeader("X-User-Role") String role) {
-                AppointmentResponseDto updated = appointmentService.updateStatus(id, request.getStatus(),
-                                UUID.fromString(userId), role);
-                ApiResponse<AppointmentResponseDto> body = ApiResponse.<AppointmentResponseDto>builder()
-                                .status(HttpStatus.OK.value())
-                                .success(true)
-                                .message("Appointment status updated successfully")
-                                .data(updated)
-                                .build();
-                return new ResponseEntity<>(body, HttpStatus.OK);
-        }
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
+                .status(HttpStatus.OK.value())
+                .success(true)
+                .message("Appointment %s confirmed successfully".formatted(appointmentId))
+                .build();
 
-        @PostMapping("/{id}/confirm")
-        public ResponseEntity<ApiResponse<AppointmentResponseDto>> confirmAppointment(
-                        @PathVariable UUID id,
-                        @RequestHeader("X-User-Id") String userId,
-                        @RequestHeader("X-User-Role") String role) {
-                AppointmentResponseDto updated = appointmentService.updateStatus(id, AppointmentStatus.CONFIRMED,
-                                UUID.fromString(userId), role);
-                ApiResponse<AppointmentResponseDto> body = ApiResponse.<AppointmentResponseDto>builder()
-                                .status(HttpStatus.OK.value())
-                                .success(true)
-                                .message("Appointment confirmed successfully")
-                                .data(updated)
-                                .build();
-                return new ResponseEntity<>(body, HttpStatus.OK);
-        }
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(response);
+    }
 
-        @PostMapping("/{id}/cancel")
-        public ResponseEntity<ApiResponse<AppointmentResponseDto>> cancelAppointment(
-                        @PathVariable UUID id,
-                        @RequestHeader("X-User-Id") String userId,
-                        @RequestHeader("X-User-Role") String role) {
-                AppointmentResponseDto updated = appointmentService.updateStatus(id, AppointmentStatus.CANCELLED,
-                                UUID.fromString(userId), role);
-                ApiResponse<AppointmentResponseDto> body = ApiResponse.<AppointmentResponseDto>builder()
-                                .status(HttpStatus.OK.value())
-                                .success(true)
-                                .message("Appointment cancelled successfully")
-                                .data(updated)
-                                .build();
-                return new ResponseEntity<>(body, HttpStatus.OK);
-        }
+    @GetMapping("/{appointmentId}")
+    public ResponseEntity<ApiResponse<AppointmentResponseDto>> getAppointmentById(
+            @PathVariable UUID appointmentId
+    ) {
+        AppointmentResponseDto appointment = appointmentService
+                .getAppointmentById(appointmentId);
 
-        @PostMapping("/{id}/complete")
-        public ResponseEntity<ApiResponse<AppointmentResponseDto>> completeAppointment(
-                        @PathVariable UUID id,
-                        @RequestHeader("X-User-Id") String userId,
-                        @RequestHeader("X-User-Role") String role) {
-                AppointmentResponseDto updated = appointmentService.updateStatus(id, AppointmentStatus.COMPLETED,
-                                UUID.fromString(userId), role);
-                ApiResponse<AppointmentResponseDto> body = ApiResponse.<AppointmentResponseDto>builder()
-                                .status(HttpStatus.OK.value())
-                                .success(true)
-                                .message("Appointment completed successfully")
-                                .data(updated)
-                                .build();
-                return new ResponseEntity<>(body, HttpStatus.OK);
-        }
+        ApiResponse<AppointmentResponseDto> response = ApiResponse.<AppointmentResponseDto>builder()
+                .status(HttpStatus.OK.value())
+                .success(true)
+                .message("Appointment %s retrieved successfully".formatted(appointmentId))
+                .data(appointment)
+                .build();
 
-        @DeleteMapping("/{id}")
-        public ResponseEntity<ApiResponse<Void>> deleteAppointment(
-                        @PathVariable UUID id,
-                        @RequestHeader("X-User-Id") String userId,
-                        @RequestHeader("X-User-Role") String role) {
-                appointmentService.deleteAppointment(id, UUID.fromString(userId), role);
-                ApiResponse<Void> body = ApiResponse.<Void>builder()
-                                .status(HttpStatus.NO_CONTENT.value())
-                                .success(true)
-                                .message("Appointment deleted successfully")
-                                .build();
-                return new ResponseEntity<>(body, HttpStatus.OK);
-        }
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(response);
+    }
 
-        @GetMapping("/patients/{patientId}/appointments")
-        public ResponseEntity<ApiResponse<List<AppointmentResponseDto>>> listAppointmentsByPatient(
-                        @PathVariable UUID patientId,
-                        Pageable pageable) {
-                Page<AppointmentResponseDto> page = appointmentService.search(patientId, null, null, null, null, null,
-                                null,
-                                null, pageable);
-                ApiResponse<List<AppointmentResponseDto>> body = ApiResponse.<List<AppointmentResponseDto>>builder()
-                                .status(HttpStatus.OK.value())
-                                .success(true)
-                                .message("Appointments fetched successfully")
-                                .data(page.getContent())
-                                .meta(PaginationMetaUtils.from(page))
-                                .build();
-                return new ResponseEntity<>(body, HttpStatus.OK);
-        }
+    @PutMapping("/{appointmentId}")
+    public ResponseEntity<ApiResponse<AppointmentResponseDto>> updateAppointment(
+            @PathVariable UUID appointmentId,
+            @Valid @RequestBody AppointmentUpdateRequest dto
+    ) {
+        AppointmentResponseDto updatedAppointment = appointmentService
+                .updateAppointment(appointmentId, dto);
 
-        @GetMapping("/doctors/{doctorId}/appointments")
-        public ResponseEntity<ApiResponse<List<AppointmentResponseDto>>> listAppointmentsByDoctor(
-                        @PathVariable UUID doctorId,
-                        Pageable pageable) {
-                Page<AppointmentResponseDto> page = appointmentService.search(null, doctorId, null, null, null, null,
-                                null,
-                                null, pageable);
-                ApiResponse<List<AppointmentResponseDto>> body = ApiResponse.<List<AppointmentResponseDto>>builder()
-                                .status(HttpStatus.OK.value())
-                                .success(true)
-                                .message("Appointments fetched successfully")
-                                .data(page.getContent())
-                                .meta(PaginationMetaUtils.from(page))
-                                .build();
-                return new ResponseEntity<>(body, HttpStatus.OK);
-        }
+        ApiResponse<AppointmentResponseDto> response = ApiResponse.<AppointmentResponseDto>builder()
+                .status(HttpStatus.OK.value())
+                .success(true)
+                .message("Appointment %s updated successfully".formatted(appointmentId))
+                .data(updatedAppointment)
+                .build();
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(response);
+    }
+
+    @PatchMapping("/{appointmentId}/cancel")
+    public ResponseEntity<ApiResponse<Void>> cancelAppointment(
+            @PathVariable UUID appointmentId
+    ) {
+        appointmentService.cancelAppointment(appointmentId);
+
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
+                .status(HttpStatus.OK.value())
+                .success(true)
+                .message("Appointment %s cancelled successfully".formatted(appointmentId))
+                .build();
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(response);
+    }
+
+    @GetMapping("/available-slots")
+    public ResponseEntity<ApiResponse<DoctorAvailableResponse>> getDoctorAvailableSlots(
+            @RequestParam UUID doctorId,
+            @RequestParam LocalDate date
+    ) {
+        DoctorAvailableResponse doctorAvailableSlots = appointmentService
+                .getDoctorAvailableSlots(doctorId, date);
+
+        ApiResponse<DoctorAvailableResponse> response = ApiResponse.<DoctorAvailableResponse>builder()
+                .status(HttpStatus.OK.value())
+                .success(true)
+                .message("Fetched available slots of doctor %s successfully".formatted(doctorId))
+                .data(doctorAvailableSlots)
+                .build();
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(response);
+    }
 }

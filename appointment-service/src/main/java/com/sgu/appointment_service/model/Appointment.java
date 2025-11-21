@@ -1,49 +1,41 @@
 package com.sgu.appointment_service.model;
 
+import com.sgu.appointment_service.constant.AppointmentStatus;
+import jakarta.persistence.*;
+import lombok.*;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import com.sgu.appointment_service.enums.AppointmentStatus;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 @Entity
-@Data
-@Builder
+@Table(name = "appointments")
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Appointment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "appointment_id", nullable = false, updatable = false)
-    private UUID appointment_id;
+    @Column(name = "appointment_id")
+    private UUID appointmentId;
 
     @Column(name = "patient_id", nullable = false)
-    private UUID patient_id;
+    private UUID patientId;
 
-    @Column(name = "doctor_id")
-    private UUID doctor_id;
+    @Column(name = "doctor_id", nullable = false)
+    private UUID doctorId;
 
     @Column(name = "clinic_id", nullable = false)
-    private UUID clinic_id;
+    private UUID clinicId;
 
     @Column(name = "start_time", nullable = false)
-    private LocalDateTime start_time;
+    private LocalDateTime startTime;
 
     @Column(name = "end_time", nullable = false)
-    private LocalDateTime end_time;
+    private LocalDateTime endTime;
 
     @Column(name = "price", nullable = false, precision = 11, scale = 2)
     private BigDecimal price;
@@ -53,5 +45,6 @@ public class Appointment {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private AppointmentStatus status;
+    @Builder.Default
+    private AppointmentStatus status = AppointmentStatus.PENDING;
 }

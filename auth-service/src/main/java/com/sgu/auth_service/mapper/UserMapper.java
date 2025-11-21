@@ -1,14 +1,15 @@
 package com.sgu.auth_service.mapper;
 
 import com.sgu.auth_service.constant.Role;
-import com.sgu.auth_service.dto.request.register.RegisterRequestDto;
+import com.sgu.auth_service.dto.request.register.RegisterPatientRequestDto;
 import com.sgu.auth_service.dto.response.login.LoginResponseDto;
-import com.sgu.auth_service.dto.response.register.RegisterResponseDto;
+import com.sgu.auth_service.dto.response.patient.PatientResponseDto;
+import com.sgu.auth_service.dto.response.register.RegisterPatientResponseDto;
 import com.sgu.auth_service.model.User;
 
 public class UserMapper {
     // Từ Register Dto -> Entity
-    public static User toEntity(RegisterRequestDto dto, String encodedPassword) {
+    public static User toEntity(RegisterPatientRequestDto dto, String encodedPassword) {
         return User.builder()
                 .email(dto.getEmail())
                 .password(encodedPassword)
@@ -17,8 +18,8 @@ public class UserMapper {
     }
 
     // Từ Entity -> Register Response DTO
-    public static RegisterResponseDto toRegisterResponseDto(User user) {
-        return RegisterResponseDto.builder()
+    public static RegisterPatientResponseDto toRegisterResponseDto(User user, PatientResponseDto patient) {
+        return RegisterPatientResponseDto.builder()
                 .id(user.getId())
                 .email(user.getEmail())
                 .role(user.getRole())
@@ -26,6 +27,7 @@ public class UserMapper {
                 .balance(user.getBalance())
                 .status(user.getStatus())
                 .createdAt(user.getCreatedAt())
+                .patient(patient)
                 .build();
     }
 

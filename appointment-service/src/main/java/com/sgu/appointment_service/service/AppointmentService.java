@@ -1,35 +1,35 @@
 package com.sgu.appointment_service.service;
 
+import com.sgu.appointment_service.constant.AppointmentStatus;
+import com.sgu.appointment_service.dto.request.AppointmentCreateRequest;
+import com.sgu.appointment_service.dto.request.AppointmentUpdateRequest;
+import com.sgu.appointment_service.dto.response.appointment.AppointmentResponseDto;
+import com.sgu.appointment_service.dto.response.common.PaginationResponse;
+import com.sgu.appointment_service.dto.response.doctor.DoctorAvailableResponse;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-
-import com.sgu.appointment_service.dto.request.AppointmentCreateRequest;
-import com.sgu.appointment_service.dto.request.AppointmentUpdateRequest;
-import com.sgu.appointment_service.dto.request.RescheduleRequest;
-import com.sgu.appointment_service.dto.response.AppointmentResponseDto;
-import com.sgu.appointment_service.enums.AppointmentStatus;
-
 public interface AppointmentService {
+    PaginationResponse<AppointmentResponseDto> getAppointments(
+            UUID patientId,
+            UUID clinicId,
+            LocalDateTime startTime,
+            LocalDateTime endTime,
+            AppointmentStatus status,
+            int page, int size
+    );
 
-    AppointmentResponseDto createAppointment(AppointmentCreateRequest request, UUID userId, String role);
+    AppointmentResponseDto createAppointment(AppointmentCreateRequest dto);
 
-    AppointmentResponseDto getById(UUID appointmentId, UUID userId, String role);
+    void confirmAppointment(UUID appointmentId);
 
-    Page<AppointmentResponseDto> search(UUID patientId, UUID doctorId, UUID clinicId, AppointmentStatus status,
-            LocalDateTime startFrom, LocalDateTime startTo, LocalDateTime endFrom, LocalDateTime endTo,
-            Pageable pageable);
+    AppointmentResponseDto getAppointmentById(UUID appointmentId);
 
-    AppointmentResponseDto updateAppointment(UUID appointmentId, AppointmentUpdateRequest request, UUID userId,
-            String role);
+    AppointmentResponseDto updateAppointment(UUID appointmentId, AppointmentUpdateRequest dto);
 
-    void deleteAppointment(UUID appointmentId, UUID userId, String role);
+    void cancelAppointment(UUID appointmentId);
 
-    AppointmentResponseDto updateStatus(UUID appointmentId, AppointmentStatus status, UUID userId, String role);
-
-    AppointmentResponseDto reschedule(UUID appointmentId, RescheduleRequest request, UUID userId, String role);
-
-    boolean isAvailable(UUID clinicId, UUID doctorId, LocalDateTime startTime, LocalDateTime endTime);
+    DoctorAvailableResponse getDoctorAvailableSlots(UUID doctorId, LocalDate date);
 }

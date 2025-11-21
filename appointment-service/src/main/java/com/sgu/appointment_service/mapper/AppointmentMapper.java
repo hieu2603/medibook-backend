@@ -1,28 +1,36 @@
 package com.sgu.appointment_service.mapper;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.NullValuePropertyMappingStrategy;
-
 import com.sgu.appointment_service.dto.request.AppointmentCreateRequest;
-import com.sgu.appointment_service.dto.request.AppointmentUpdateRequest;
-import com.sgu.appointment_service.dto.response.AppointmentResponseDto;
-import com.sgu.appointment_service.enums.AppointmentStatus;
+import com.sgu.appointment_service.dto.response.appointment.AppointmentResponseDto;
 import com.sgu.appointment_service.model.Appointment;
 
-@Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE, imports = {
-        AppointmentStatus.class })
-public interface AppointmentMapper {
+public class AppointmentMapper {
 
-    @Mapping(target = "appointment_id", ignore = true)
-    @Mapping(target = "status", expression = "java(AppointmentStatus.PENDING)")
-    Appointment toEntity(AppointmentCreateRequest request);
+    // Từ Create DTO -> Entity
+    public static Appointment toEntity(AppointmentCreateRequest dto) {
+        return Appointment.builder()
+                .patientId(dto.getPatientId())
+                .doctorId(dto.getDoctorId())
+                .clinicId(dto.getClinicId())
+                .startTime(dto.getStartTime())
+                .endTime(dto.getEndTime())
+                .price(dto.getPrice())
+                .description(dto.getDescription())
+                .build();
+    }
 
-    AppointmentResponseDto toResponseDto(Appointment entity);
-
-    @Mapping(target = "appointment_id", ignore = true)
-    @Mapping(target = "patient_id", ignore = true)
-    @Mapping(target = "status", ignore = true)
-    void updateEntityFromRequest(AppointmentUpdateRequest request, @MappingTarget Appointment entity);
+    // Từ Entity -> Response DTO
+    public static AppointmentResponseDto toDto(Appointment appointment) {
+        return AppointmentResponseDto.builder()
+                .appointmentId(appointment.getAppointmentId())
+                .patientId(appointment.getPatientId())
+                .doctorId(appointment.getDoctorId())
+                .clinicId(appointment.getClinicId())
+                .startTime(appointment.getStartTime())
+                .endTime(appointment.getEndTime())
+                .price(appointment.getPrice())
+                .description(appointment.getDescription())
+                .status(appointment.getStatus())
+                .build();
+    }
 }

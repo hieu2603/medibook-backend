@@ -1,13 +1,17 @@
 package com.sgu.auth_service.service.impl;
 
+import com.sgu.auth_service.client.PatientClient;
 import com.sgu.auth_service.constant.Status;
+import com.sgu.auth_service.dto.common.ApiResponse;
 import com.sgu.auth_service.dto.request.login.LoginRequestDto;
 import com.sgu.auth_service.dto.request.password.ChangePasswordRequestDto;
 import com.sgu.auth_service.dto.request.password.ForgotPasswordRequestDto;
 import com.sgu.auth_service.dto.request.password.ResetPasswordRequestDto;
-import com.sgu.auth_service.dto.request.register.RegisterRequestDto;
+import com.sgu.auth_service.dto.request.patient.PatientCreateRequest;
+import com.sgu.auth_service.dto.request.register.RegisterPatientRequestDto;
 import com.sgu.auth_service.dto.response.login.LoginResponseDto;
-import com.sgu.auth_service.dto.response.register.RegisterResponseDto;
+import com.sgu.auth_service.dto.response.patient.PatientResponseDto;
+import com.sgu.auth_service.dto.response.register.RegisterPatientResponseDto;
 import com.sgu.auth_service.event.EmailEventProducer;
 import com.sgu.auth_service.exception.EmailAlreadyExistsException;
 import com.sgu.auth_service.exception.InvalidCredentialsException;
@@ -38,9 +42,10 @@ public class AuthServiceImpl implements AuthService {
     private final JwtUtil jwtUtil;
     private final EmailEventProducer emailEventProducer;
     private final AuthPermissionValidator authPermissionValidator;
+    private final PatientClient patientClient;
 
     @Override
-    public RegisterResponseDto register(RegisterRequestDto dto) {
+    public RegisterPatientResponseDto register(RegisterPatientRequestDto dto) {
         String email = dto.getEmail().trim();
         String password = dto.getPassword().trim();
 
@@ -48,15 +53,29 @@ public class AuthServiceImpl implements AuthService {
             throw new EmailAlreadyExistsException("Email already exists");
         }
 
+        // 1. Tạo user
         String encodedPassword = passwordEncoder.encode(password);
-
         User user = UserMapper.toEntity(dto, encodedPassword);
-
         User registeredUser = userRepository.save(user);
 
+        // 2. Gọi sang patient-service tạo patient
+        PatientCreateRequest patientCreateRequest = PatientCreateRequest.builder()
+                .fullName(dto.getFullName())
+                .phone(dto.getPhone())
+                .dob(dto.getDob())
+                .gender(dto.getGender())
+                .address(dto.getAddress())
+                .userId(registeredUser.getId())
+                .build();
+
+        ApiResponse<PatientResponseDto> response = patientClient.createPatient(patientCreateRequest);
+
+        PatientResponseDto createdPatient = response.getData();
+
+        // 3. Gửi email chào mừng
         emailEventProducer.sendWelcomeEmail(email);
 
-        return UserMapper.toRegisterResponseDto(registeredUser);
+        return UserMapper.toRegisterResponseDto(registeredUser, createdPatient);
     }
 
     @Override

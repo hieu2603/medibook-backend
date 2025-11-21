@@ -5,9 +5,9 @@ import com.sgu.auth_service.dto.request.login.LoginRequestDto;
 import com.sgu.auth_service.dto.request.password.ChangePasswordRequestDto;
 import com.sgu.auth_service.dto.request.password.ForgotPasswordRequestDto;
 import com.sgu.auth_service.dto.request.password.ResetPasswordRequestDto;
-import com.sgu.auth_service.dto.request.register.RegisterRequestDto;
+import com.sgu.auth_service.dto.request.register.RegisterPatientRequestDto;
 import com.sgu.auth_service.dto.response.login.LoginResponseDto;
-import com.sgu.auth_service.dto.response.register.RegisterResponseDto;
+import com.sgu.auth_service.dto.response.register.RegisterPatientResponseDto;
 import com.sgu.auth_service.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,15 +23,15 @@ import java.util.UUID;
 public class AuthController {
     private final AuthService authService;
 
-    @PostMapping("/register")
-    public ResponseEntity<ApiResponse<RegisterResponseDto>> register(
-            @Valid @RequestBody RegisterRequestDto dto
+    @PostMapping("/register-patient")
+    public ResponseEntity<ApiResponse<RegisterPatientResponseDto>> registerPatient(
+            @Valid @RequestBody RegisterPatientRequestDto dto
     ) {
-        RegisterResponseDto registeredUser = authService.register(dto);
+        RegisterPatientResponseDto registeredUser = authService.register(dto);
 
-        ApiResponse<RegisterResponseDto> response = ApiResponse.<RegisterResponseDto>builder()
+        ApiResponse<RegisterPatientResponseDto> response = ApiResponse.<RegisterPatientResponseDto>builder()
                 .status(HttpStatus.CREATED.value())
-                .message("User registered successfully")
+                .message("Patient registered successfully")
                 .data(registeredUser)
                 .build();
 

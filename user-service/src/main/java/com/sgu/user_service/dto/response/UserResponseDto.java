@@ -17,6 +17,7 @@ public class UserResponseDto {
     private Role role;
     private String avatarUrl;
     private BigDecimal balance;
+    private BigDecimal pendingBalance;
     private Status status;
     private LocalDate createdAt;
 }

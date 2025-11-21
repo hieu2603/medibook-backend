@@ -1,37 +1,34 @@
 package com.sgu.appointment_service.dto.request;
 
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.NotNull;
+import lombok.Builder;
+import lombok.Data;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.Future;
-import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 @Data
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class AppointmentCreateRequest {
-    @NotNull
-    private UUID patient_id;
+    @NotNull(message = "Patient ID is required")
+    private UUID patientId;
 
-    private UUID doctor_id;
+    @NotNull(message = "Doctor ID is required")
+    private UUID doctorId;
 
-    @NotNull
-    private UUID clinic_id;
+    @NotNull(message = "Clinic ID is required")
+    private UUID clinicId;
 
-    @NotNull
-    @Future
-    private LocalDateTime start_time;
+    @NotNull(message = "Start time is required")
+    @Future(message = "Start time must be in the future")
+    private LocalDateTime startTime;
 
-    @NotNull
-    @Future
-    private LocalDateTime end_time;
+    @NotNull(message = "End time is required")
+    @Future(message = "End time must be in the future")
+    private LocalDateTime endTime;
 
     @NotNull(message = "Price is required")
     @DecimalMin(value = "0", message = "Price must be greater than or equal to 0")

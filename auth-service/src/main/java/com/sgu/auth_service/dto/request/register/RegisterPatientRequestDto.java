@@ -1,5 +1,6 @@
 package com.sgu.auth_service.dto.request.register;
 
+import com.sgu.auth_service.constant.PatientGender;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -7,9 +8,11 @@ import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Data;
 
+import java.time.LocalDate;
+
 @Data
 @Builder
-public class RegisterRequestDto {
+public class RegisterPatientRequestDto {
     @NotBlank(message = "Email is required")
     @Size(max = 255, message = "Email must not exceed 255 characters")
     @Email(message = "Invalid email format")
@@ -20,6 +23,19 @@ public class RegisterRequestDto {
     private String password;
 
     @NotBlank(message = "Role is required")
-    @Pattern(regexp = "ADMIN|CLINIC|PATIENT", message = "Role must be ADMIN, CLINIC, or PATIENT")
+    @Pattern(regexp = "PATIENT", message = "Role must be PATIENT")
     private String role;
+
+    @NotBlank(message = "Full name is required")
+    @Size(max = 255, message = "Full name must not exceed 255 characters")
+    private String fullName;
+
+    @NotBlank(message = "Phone is required")
+    private String phone;
+
+    private LocalDate dob;
+
+    private PatientGender gender;
+
+    private String address;
 }

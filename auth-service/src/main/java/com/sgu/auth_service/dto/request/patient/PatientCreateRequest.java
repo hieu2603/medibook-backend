@@ -1,6 +1,6 @@
-package com.sgu.patient_service.dto.request;
+package com.sgu.auth_service.dto.request.patient;
 
-import com.sgu.patient_service.enums.PatientGender;
+import com.sgu.auth_service.constant.PatientGender;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;

@@ -11,6 +11,7 @@ public class UserMapper {
                 .role(user.getRole())
                 .avatarUrl(user.getAvatarUrl())
                 .balance(user.getBalance())
+                .pendingBalance(user.getPendingBalance())
                 .status(user.getStatus())
                 .createdAt(user.getCreatedAt())
                 .build();

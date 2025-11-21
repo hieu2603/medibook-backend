@@ -1,303 +1,253 @@
 package com.sgu.appointment_service.service.impl;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import com.sgu.appointment_service.client.ClinicServiceClient;
-import com.sgu.appointment_service.client.PatientServiceClient;
-import com.sgu.appointment_service.client.UserServiceClient;
+import com.sgu.appointment_service.constant.AppointmentStatus;
 import com.sgu.appointment_service.dto.request.AppointmentCreateRequest;
 import com.sgu.appointment_service.dto.request.AppointmentUpdateRequest;
-import com.sgu.appointment_service.dto.request.RescheduleRequest;
-import com.sgu.appointment_service.dto.request.TransferRequestDto;
-import com.sgu.appointment_service.dto.response.AppointmentResponseDto;
-import com.sgu.appointment_service.dto.response.ClinicResponseDto;
-import com.sgu.appointment_service.dto.response.PatientResponseDto;
-import com.sgu.appointment_service.dto.response.common.ApiResponse;
-import com.sgu.appointment_service.enums.AppointmentStatus;
-import com.sgu.appointment_service.enums.TransferType;
-import com.sgu.appointment_service.exception.InsufficientBalanceException;
+import com.sgu.appointment_service.dto.response.appointment.AppointmentResponseDto;
+import com.sgu.appointment_service.dto.response.common.PaginationMeta;
+import com.sgu.appointment_service.dto.response.common.PaginationResponse;
+import com.sgu.appointment_service.dto.response.doctor.DoctorAvailableResponse;
+import com.sgu.appointment_service.dto.response.doctor.TimeRangeDto;
+import com.sgu.appointment_service.exception.AppointmentConflictException;
+import com.sgu.appointment_service.exception.InvalidTimeRangeException;
 import com.sgu.appointment_service.exception.ResourceNotFoundException;
 import com.sgu.appointment_service.mapper.AppointmentMapper;
 import com.sgu.appointment_service.model.Appointment;
 import com.sgu.appointment_service.repository.AppointmentRepository;
-import com.sgu.appointment_service.security.AppointmentPermissionValidator;
 import com.sgu.appointment_service.service.AppointmentService;
-
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 @Service
-@Transactional
 @RequiredArgsConstructor
 public class AppointmentServiceImpl implements AppointmentService {
 
     private final AppointmentRepository appointmentRepository;
-    private final AppointmentMapper appointmentMapper;
-    private final UserServiceClient userServiceClient;
-    private final PatientServiceClient patientServiceClient;
-    private final ClinicServiceClient clinicServiceClient;
-    private final AppointmentPermissionValidator permissionValidator;
 
     @Override
-    public AppointmentResponseDto createAppointment(AppointmentCreateRequest request, UUID userId, String role) {
-        validateTimeRange(request.getStart_time(), request.getEnd_time());
-        boolean conflict = appointmentRepository.existsOverlappingConfirmed(request.getClinic_id(),
-                request.getDoctor_id(),
-                request.getStart_time(), request.getEnd_time());
-        if (conflict) {
-            throw new IllegalArgumentException("Time slot conflicts with an existing confirmed appointment");
-        }
+    public PaginationResponse<AppointmentResponseDto> getAppointments(
+            UUID patientId, UUID clinicId,
+            LocalDateTime startTime, LocalDateTime endTime,
+            AppointmentStatus status,
+            int page, int size
+    ) {
+        int pageIndex = (page <= 0) ? 0 : page - 1;
 
-        ResponseEntity<ApiResponse<PatientResponseDto>> patientResponseEntity = patientServiceClient
-                .getPatientById(request.getPatient_id());
-        ApiResponse<PatientResponseDto> patientResponse = patientResponseEntity.getBody();
-        if (patientResponse == null || patientResponse.getData() == null) {
-            throw new ResourceNotFoundException("Patient", request.getPatient_id());
-        }
-        UUID patientUserId = patientResponse.getData().getUserId();
+        Pageable pageable = PageRequest.of(pageIndex, size, Sort.by("startTime").descending());
 
-        permissionValidator.validateCreatePermission(patientUserId, userId, role);
+        Specification<Appointment> specification = ((root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
 
-        ResponseEntity<ApiResponse<ClinicResponseDto>> clinicResponseEntity = clinicServiceClient
-                .getClinicById(request.getClinic_id());
-        ApiResponse<ClinicResponseDto> clinicResponse = clinicResponseEntity.getBody();
-        if (clinicResponse == null || clinicResponse.getData() == null) {
-            throw new ResourceNotFoundException("Clinic", request.getClinic_id());
-        }
-        UUID clinicUserId = clinicResponse.getData().getUserId();
+            if (patientId != null) {
+                predicates.add(criteriaBuilder.equal(root.get("patientId"), patientId));
+            }
+            if (clinicId != null) {
+                predicates.add(criteriaBuilder.equal(root.get("clinicId"), clinicId));
+            }
+            if (startTime != null) {
+                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("startTime"), startTime));
+            }
+            // Trả về các kết quả đến endTime - 1 ngày
+            if (endTime != null) {
+                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("endTime"), endTime));
+            }
+            if (status != null) {
+                predicates.add(criteriaBuilder.equal(root.get("status"), status));
+            }
 
-        TransferRequestDto transferRequest = TransferRequestDto.builder()
-                .fromUserId(patientUserId)
-                .toUserId(clinicUserId)
-                .amount(request.getPrice())
-                .type(TransferType.APPOINTMENT)
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        });
+
+        Page<Appointment> appointmentPage = appointmentRepository.findAll(specification, pageable);
+
+        List<AppointmentResponseDto> data = appointmentPage
+                .map(AppointmentMapper::toDto)
+                .getContent();
+
+        long totalItems = appointmentPage.getTotalElements();
+
+        PaginationMeta meta = PaginationMeta.builder()
+                .currentPage(totalItems == 0 ? 0 : appointmentPage.getNumber() + 1)
+                .pageSize(appointmentPage.getSize())
+                .totalPages(appointmentPage.getTotalPages())
+                .totalItems(totalItems)
                 .build();
 
-        try {
-            userServiceClient.payForAppointment(transferRequest);
-        } catch (Exception e) {
-            if (e.getMessage() != null && e.getMessage().contains("balance")) {
-                throw new InsufficientBalanceException("Patient does not have enough balance for appointment");
-            }
-            throw new RuntimeException("Failed to process payment: " + e.getMessage(), e);
-        }
-
-        Appointment entity = appointmentMapper.toEntity(request);
-        Appointment saved = appointmentRepository.save(entity);
-        return appointmentMapper.toResponseDto(saved);
+        return PaginationResponse.<AppointmentResponseDto>builder()
+                .data(data)
+                .meta(meta)
+                .build();
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public AppointmentResponseDto getById(UUID appointmentId, UUID userId, String role) {
-        Appointment entity = appointmentRepository.findById(appointmentId)
+    @Transactional
+    public AppointmentResponseDto createAppointment(AppointmentCreateRequest dto) {
+        UUID doctorId = dto.getDoctorId();
+        LocalDateTime startTime = dto.getStartTime();
+        LocalDateTime endTime = dto.getEndTime();
+
+        if (startTime.isAfter(endTime) || startTime.isEqual(endTime)) {
+            throw new InvalidTimeRangeException("Start time must be before end time");
+        }
+
+        // Kiểm tra lịch trùng của Doctor
+        checkDoctorAvailability(doctorId, startTime, endTime, null);
+
+        Appointment newAppointment = AppointmentMapper.toEntity(dto);
+        appointmentRepository.save(newAppointment);
+
+        return AppointmentMapper.toDto(newAppointment);
+    }
+
+    @Override
+    public void confirmAppointment(UUID appointmentId) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Appointment", appointmentId));
 
-        ResponseEntity<ApiResponse<PatientResponseDto>> patientResponseEntity = patientServiceClient
-                .getPatientById(entity.getPatient_id());
-        ApiResponse<PatientResponseDto> patientResponse = patientResponseEntity.getBody();
-        if (patientResponse == null || patientResponse.getData() == null) {
-            throw new ResourceNotFoundException("Patient", entity.getPatient_id());
+        if (!appointment.getStatus().equals(AppointmentStatus.PENDING)) {
+            throw new IllegalArgumentException("Only appointment with PENDING status can be confirmed");
         }
-        UUID patientUserId = patientResponse.getData().getUserId();
 
-        ResponseEntity<ApiResponse<ClinicResponseDto>> clinicResponseEntity = clinicServiceClient
-                .getClinicById(entity.getClinic_id());
-        ApiResponse<ClinicResponseDto> clinicResponse = clinicResponseEntity.getBody();
-        if (clinicResponse == null || clinicResponse.getData() == null) {
-            throw new ResourceNotFoundException("Clinic", entity.getClinic_id());
-        }
-        UUID clinicUserId = clinicResponse.getData().getUserId();
+        UUID doctorId = appointment.getDoctorId();
 
-        permissionValidator.validateViewPermission(entity, patientUserId, clinicUserId, userId, role);
+        checkDoctorAvailability(
+                doctorId,
+                appointment.getStartTime(),
+                appointment.getEndTime(),
+                appointmentId
+        );
 
-        return appointmentMapper.toResponseDto(entity);
+        appointment.setStatus(AppointmentStatus.CONFIRMED);
+        appointmentRepository.save(appointment);
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public Page<AppointmentResponseDto> search(UUID patientId, UUID doctorId, UUID clinicId, AppointmentStatus status,
-            LocalDateTime startFrom, LocalDateTime startTo, LocalDateTime endFrom, LocalDateTime endTo,
-            Pageable pageable) {
-        Page<Appointment> page = appointmentRepository.search(patientId, doctorId, clinicId, status, startFrom, startTo,
-                endFrom, endTo, pageable);
-        return page.map(appointmentMapper::toResponseDto);
-    }
-
-    @Override
-    public AppointmentResponseDto updateAppointment(UUID appointmentId, AppointmentUpdateRequest request, UUID userId,
-            String role) {
-        Appointment entity = appointmentRepository.findById(appointmentId)
+    public AppointmentResponseDto getAppointmentById(UUID appointmentId) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Appointment", appointmentId));
 
-        ResponseEntity<ApiResponse<PatientResponseDto>> patientResponseEntity = patientServiceClient
-                .getPatientById(entity.getPatient_id());
-        ApiResponse<PatientResponseDto> patientResponse = patientResponseEntity.getBody();
-        if (patientResponse == null || patientResponse.getData() == null) {
-            throw new ResourceNotFoundException("Patient", entity.getPatient_id());
-        }
-        UUID patientUserId = patientResponse.getData().getUserId();
-
-        ResponseEntity<ApiResponse<ClinicResponseDto>> clinicResponseEntity = clinicServiceClient
-                .getClinicById(entity.getClinic_id());
-        ApiResponse<ClinicResponseDto> clinicResponse = clinicResponseEntity.getBody();
-        if (clinicResponse == null || clinicResponse.getData() == null) {
-            throw new ResourceNotFoundException("Clinic", entity.getClinic_id());
-        }
-        UUID clinicUserId = clinicResponse.getData().getUserId();
-
-        permissionValidator.validateUpdatePermission(entity, patientUserId, clinicUserId, userId, role);
-
-        if (request.getStart_time() != null || request.getEnd_time() != null) {
-            LocalDateTime start = request.getStart_time() != null ? request.getStart_time() : entity.getStart_time();
-            LocalDateTime end = request.getEnd_time() != null ? request.getEnd_time() : entity.getEnd_time();
-            validateTimeRange(start, end);
-        }
-        appointmentMapper.updateEntityFromRequest(request, entity);
-        Appointment saved = appointmentRepository.save(entity);
-        return appointmentMapper.toResponseDto(saved);
+        return AppointmentMapper.toDto(appointment);
     }
 
     @Override
-    public void deleteAppointment(UUID appointmentId, UUID userId, String role) {
-        Appointment entity = appointmentRepository.findById(appointmentId)
+    @Transactional
+    public AppointmentResponseDto updateAppointment(UUID appointmentId, AppointmentUpdateRequest dto) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Appointment", appointmentId));
 
-        ResponseEntity<ApiResponse<PatientResponseDto>> patientResponseEntity = patientServiceClient
-                .getPatientById(entity.getPatient_id());
-        ApiResponse<PatientResponseDto> patientResponse = patientResponseEntity.getBody();
-        if (patientResponse == null || patientResponse.getData() == null) {
-            throw new ResourceNotFoundException("Patient", entity.getPatient_id());
-        }
-        UUID patientUserId = patientResponse.getData().getUserId();
-
-        ResponseEntity<ApiResponse<ClinicResponseDto>> clinicResponseEntity = clinicServiceClient
-                .getClinicById(entity.getClinic_id());
-        ApiResponse<ClinicResponseDto> clinicResponse = clinicResponseEntity.getBody();
-        if (clinicResponse == null || clinicResponse.getData() == null) {
-            throw new ResourceNotFoundException("Clinic", entity.getClinic_id());
-        }
-        UUID clinicUserId = clinicResponse.getData().getUserId();
-
-        permissionValidator.validateDeletePermission(entity, patientUserId, clinicUserId, userId, role);
-
-        appointmentRepository.deleteById(appointmentId);
-    }
-
-    @Override
-    public AppointmentResponseDto updateStatus(UUID appointmentId, AppointmentStatus status, UUID userId, String role) {
-        Appointment entity = appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Appointment", appointmentId));
-
-        ResponseEntity<ApiResponse<PatientResponseDto>> patientResponseEntity = patientServiceClient
-                .getPatientById(entity.getPatient_id());
-        ApiResponse<PatientResponseDto> patientResponse = patientResponseEntity.getBody();
-        if (patientResponse == null || patientResponse.getData() == null) {
-            throw new ResourceNotFoundException("Patient", entity.getPatient_id());
-        }
-        UUID patientUserId = patientResponse.getData().getUserId();
-
-        ResponseEntity<ApiResponse<ClinicResponseDto>> clinicResponseEntity = clinicServiceClient
-                .getClinicById(entity.getClinic_id());
-        ApiResponse<ClinicResponseDto> clinicResponse = clinicResponseEntity.getBody();
-        if (clinicResponse == null || clinicResponse.getData() == null) {
-            throw new ResourceNotFoundException("Clinic", entity.getClinic_id());
-        }
-        UUID clinicUserId = clinicResponse.getData().getUserId();
-
-        if (status == AppointmentStatus.CANCELLED && entity.getStatus() != AppointmentStatus.CANCELLED) {
-            permissionValidator.validateCancelPermission(entity, patientUserId, clinicUserId, userId, role);
-
-            TransferRequestDto refundRequest = TransferRequestDto.builder()
-                    .fromUserId(clinicUserId)
-                    .toUserId(patientUserId)
-                    .amount(entity.getPrice())
-                    .type(TransferType.REFUND)
-                    .build();
-
-            try {
-                userServiceClient.refundPayment(refundRequest);
-            } catch (Exception e) {
-                if (e.getMessage() != null && e.getMessage().contains("balance")) {
-                    throw new InsufficientBalanceException("Clinic does not have enough pending balance to refund");
-                }
-                throw new RuntimeException("Failed to process refund: " + e.getMessage(), e);
-            }
-        } else {
-            permissionValidator.validateUpdatePermission(entity, patientUserId, clinicUserId, userId, role);
+        // Chỉ cho phép update appointment khi status là PENDING
+        if (!appointment.getStatus().equals(AppointmentStatus.PENDING)) {
+            throw new IllegalArgumentException("Only PENDING appointment can be updated");
         }
 
-        if (status == AppointmentStatus.CONFIRMED) {
-            boolean conflict = appointmentRepository.existsOverlappingConfirmed(entity.getClinic_id(),
-                    entity.getDoctor_id(),
-                    entity.getStart_time(), entity.getEnd_time());
-            if (conflict) {
-                throw new IllegalArgumentException("Time slot conflicts with an existing confirmed appointment");
+        UUID newDoctorId = dto.getDoctorId();
+        LocalDateTime newStart = dto.getStartTime();
+        LocalDateTime newEnd = dto.getEndTime();
+        String newDescription = dto.getDescription();
+
+        // Validate time nếu có thay đổi
+        if (newStart != null && newEnd != null) {
+            if (newStart.isAfter(newEnd) || newStart.isEqual(newEnd)) {
+                throw new InvalidTimeRangeException("Start time must be before end time");
             }
         }
 
-        entity.setStatus(status);
-        Appointment saved = appointmentRepository.save(entity);
-        return appointmentMapper.toResponseDto(saved);
+        // Nếu thay đổi thời gian hoặc bác sĩ -> check conflict
+        boolean timeChanged = newStart != null || newEnd != null;
+        boolean doctorChanged = newDoctorId != null && !newDoctorId.equals(appointment.getDoctorId());
+
+        if (timeChanged || doctorChanged) {
+            UUID doctorToCheck = doctorChanged ? newDoctorId : appointment.getDoctorId();
+            LocalDateTime startToCheck = newStart != null ? newStart : appointment.getStartTime();
+            LocalDateTime endToCheck = newEnd != null ? newEnd : appointment.getEndTime();
+
+            checkDoctorAvailability(doctorToCheck, startToCheck, endToCheck, appointmentId);
+        }
+
+        // Update lại appointment
+        if (newDoctorId != null) appointment.setDoctorId(newDoctorId);
+        if (newStart != null) appointment.setStartTime(newStart);
+        if (newEnd != null) appointment.setEndTime(newEnd);
+        if (newDescription != null) appointment.setDescription(newDescription);
+
+        appointmentRepository.save(appointment);
+
+        return AppointmentMapper.toDto(appointment);
     }
 
     @Override
-    public AppointmentResponseDto reschedule(UUID appointmentId, RescheduleRequest request, UUID userId, String role) {
-        Appointment entity = appointmentRepository.findById(appointmentId)
+    @Transactional
+    public void cancelAppointment(UUID appointmentId) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Appointment", appointmentId));
 
-        ResponseEntity<ApiResponse<PatientResponseDto>> patientResponseEntity = patientServiceClient
-                .getPatientById(entity.getPatient_id());
-        ApiResponse<PatientResponseDto> patientResponse = patientResponseEntity.getBody();
-        if (patientResponse == null || patientResponse.getData() == null) {
-            throw new ResourceNotFoundException("Patient", entity.getPatient_id());
-        }
-        UUID patientUserId = patientResponse.getData().getUserId();
+        AppointmentStatus status = appointment.getStatus();
 
-        ResponseEntity<ApiResponse<ClinicResponseDto>> clinicResponseEntity = clinicServiceClient
-                .getClinicById(entity.getClinic_id());
-        ApiResponse<ClinicResponseDto> clinicResponse = clinicResponseEntity.getBody();
-        if (clinicResponse == null || clinicResponse.getData() == null) {
-            throw new ResourceNotFoundException("Clinic", entity.getClinic_id());
+        if (!(status.equals(AppointmentStatus.PENDING) || status.equals(AppointmentStatus.CONFIRMED))) {
+            throw new IllegalArgumentException("Only PENDING or CONFIRMED appointment can be cancelled");
         }
-        UUID clinicUserId = clinicResponse.getData().getUserId();
 
-        permissionValidator.validateUpdatePermission(entity, patientUserId, clinicUserId, userId, role);
-
-        UUID doctor = request.getDoctor_id() != null ? request.getDoctor_id() : entity.getDoctor_id();
-        validateTimeRange(request.getStart_time(), request.getEnd_time());
-        boolean conflict = appointmentRepository.existsOverlappingConfirmed(entity.getClinic_id(), doctor,
-                request.getStart_time(), request.getEnd_time());
-        if (conflict) {
-            throw new IllegalArgumentException("Time slot conflicts with an existing confirmed appointment");
-        }
-        entity.setDoctor_id(doctor);
-        entity.setStart_time(request.getStart_time());
-        entity.setEnd_time(request.getEnd_time());
-        Appointment saved = appointmentRepository.save(entity);
-        return appointmentMapper.toResponseDto(saved);
+        appointment.setStatus(AppointmentStatus.CANCELLED);
+        appointmentRepository.save(appointment);
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public boolean isAvailable(UUID clinicId, UUID doctorId, LocalDateTime startTime, LocalDateTime endTime) {
-        validateTimeRange(startTime, endTime);
-        boolean conflict = appointmentRepository.existsOverlappingConfirmed(clinicId, doctorId, startTime, endTime);
-        return !conflict;
+    public DoctorAvailableResponse getDoctorAvailableSlots(UUID doctorId, LocalDate date) {
+        // Lấy tất cả lịch của bác sĩ trong ngày
+        List<Appointment> appointments = appointmentRepository
+                .findAppointmentsByDoctorAndDate(doctorId, date);
+
+        // Chuyển thành các khoảng thời gian bận
+        List<TimeRangeDto> busyRanges = appointments.stream()
+                .map(a -> new TimeRangeDto(a.getStartTime().toLocalTime(), a.getEndTime().toLocalTime()))
+                .toList();
+
+        // Khởi tạo slot từ 8:00 -> 17:00, mỗi slot 1h
+        List<TimeRangeDto> availableRanges = new ArrayList<>();
+        LocalTime slotStart = LocalTime.of(8, 0);
+        LocalTime slotEnd = LocalTime.of(17, 0);
+
+        while (slotStart.isBefore(slotEnd)) {
+            LocalTime slotFinish = slotStart.plusHours(1);
+
+            LocalTime finalSlotStart = slotStart;
+            boolean isConflict = busyRanges.stream().anyMatch(br ->
+                    finalSlotStart.isBefore(br.getEndTime()) && slotFinish.isAfter(br.getStartTime())
+            );
+
+            if (!isConflict) {
+                availableRanges.add(new TimeRangeDto(slotStart, slotFinish));
+            }
+
+            slotStart = slotStart.plusHours(1);
+        }
+
+        return new DoctorAvailableResponse(doctorId, date, availableRanges);
     }
 
-    private void validateTimeRange(LocalDateTime start, LocalDateTime end) {
-        if (start == null || end == null || !start.isBefore(end)) {
-            throw new IllegalArgumentException("start_time must be before end_time");
-        }
-        if (start.isBefore(LocalDateTime.now())) {
-            throw new IllegalArgumentException("start_time must be in the future");
+    private void checkDoctorAvailability(
+            UUID doctorId, LocalDateTime startTime, LocalDateTime endTime, UUID appointmentId
+    ) {
+        boolean hasConflict = appointmentRepository
+                .findConflictingAppointmentByDoctor(doctorId, startTime, endTime, appointmentId)
+                .isPresent();
+
+        if (hasConflict) {
+            throw new AppointmentConflictException("Doctor is not available in this time");
         }
     }
 }

@@ -2,6 +2,7 @@ package com.sgu.auth_service.dto.response.register;
 
 import com.sgu.auth_service.constant.Role;
 import com.sgu.auth_service.constant.Status;
+import com.sgu.auth_service.dto.response.patient.PatientResponseDto;
 import lombok.Builder;
 import lombok.Data;
 
@@ -11,7 +12,7 @@ import java.util.UUID;
 
 @Data
 @Builder
-public class RegisterResponseDto {
+public class RegisterPatientResponseDto {
     private UUID id;
     private String email;
     private Role role;
@@ -19,4 +20,5 @@ public class RegisterResponseDto {
     private BigDecimal balance;
     private Status status;
     private LocalDate createdAt;
+    private PatientResponseDto patient;
 }

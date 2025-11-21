@@ -1,4 +1,4 @@
-package com.sgu.appointment_service.enums;
+package com.sgu.appointment_service.constant;
 
 public enum AppointmentStatus {
     PENDING,

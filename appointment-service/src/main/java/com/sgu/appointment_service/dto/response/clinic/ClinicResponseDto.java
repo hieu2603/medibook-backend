@@ -1,4 +1,4 @@
-package com.sgu.appointment_service.dto.response;
+package com.sgu.appointment_service.dto.response.clinic;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -14,6 +14,10 @@ public class PatientMapper {
     public static Patient toEntity(PatientCreateRequest dto) {
         return Patient.builder()
                 .fullName(dto.getFullName())
+                .dob(dto.getDob())
+                .gender(dto.getGender())
+                .phone(dto.getPhone())
+                .address(dto.getAddress())
                 .userId(dto.getUserId())
                 .build();
     }

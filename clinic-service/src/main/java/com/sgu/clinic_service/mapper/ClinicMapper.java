@@ -4,6 +4,7 @@ import com.sgu.clinic_service.dto.request.clinic.ClinicCreateRequestDto;
 import com.sgu.clinic_service.dto.request.clinic.ClinicUpdateRequestDto;
 import com.sgu.clinic_service.dto.response.clinic.ClinicResponseDto;
 import com.sgu.clinic_service.model.Clinic;
+import com.sgu.clinic_service.repository.ReviewRepository;
 
 import java.math.BigDecimal;
 
@@ -17,7 +18,9 @@ public class ClinicMapper {
     }
 
     // Từ Entity -> Response DTO
-    public static ClinicResponseDto toDto(Clinic clinic) {
+    public static ClinicResponseDto toDto(Clinic clinic, ReviewRepository reviewRepository) {
+        Double averageRating = reviewRepository.getAverageRating(clinic.getId());
+
         return ClinicResponseDto.builder()
                 .id(clinic.getId())
                 .clinicName(clinic.getClinicName())
@@ -28,6 +31,7 @@ public class ClinicMapper {
                 .description(clinic.getDescription())
                 .price(clinic.getPrice())
                 .userId(clinic.getUserId())
+                .averageRating(Double.parseDouble(String.format("%.1f", averageRating)))
                 .build();
     }
 

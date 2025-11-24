@@ -9,6 +9,7 @@ import com.sgu.clinic_service.exception.ResourceNotFoundException;
 import com.sgu.clinic_service.mapper.ClinicMapper;
 import com.sgu.clinic_service.model.Clinic;
 import com.sgu.clinic_service.repository.ClinicRepository;
+import com.sgu.clinic_service.repository.ReviewRepository;
 import com.sgu.clinic_service.security.ClinicPermissionValidator;
 import com.sgu.clinic_service.service.ClinicService;
 import lombok.AllArgsConstructor;
@@ -25,6 +26,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class ClinicServiceImpl implements ClinicService {
     private final ClinicRepository clinicRepository;
+    private final ReviewRepository reviewRepository;
     private final ClinicPermissionValidator permissionValidator;
 
     @Override
@@ -55,7 +57,7 @@ public class ClinicServiceImpl implements ClinicService {
             clinicPage = clinicRepository.findAll(pageable);
         }
 
-        List<ClinicResponseDto> data = clinicPage.map(ClinicMapper::toDto).getContent();
+        List<ClinicResponseDto> data = clinicPage.map(c -> ClinicMapper.toDto(c, reviewRepository)).getContent();
 
         long totalItems = clinicPage.getTotalElements();
 
@@ -77,7 +79,7 @@ public class ClinicServiceImpl implements ClinicService {
         Clinic clinic = clinicRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Clinic not found"));
 
-        return ClinicMapper.toDto(clinic);
+        return ClinicMapper.toDto(clinic, reviewRepository);
     }
 
     @Override
@@ -86,7 +88,7 @@ public class ClinicServiceImpl implements ClinicService {
 
         Clinic createdClinic = clinicRepository.save(clinic);
 
-        return ClinicMapper.toDto(createdClinic);
+        return ClinicMapper.toDto(createdClinic, reviewRepository);
     }
 
     @Override
@@ -100,6 +102,6 @@ public class ClinicServiceImpl implements ClinicService {
 
         Clinic updatedClinic = clinicRepository.save(clinic);
 
-        return ClinicMapper.toDto(updatedClinic);
+        return ClinicMapper.toDto(updatedClinic, reviewRepository);
     }
 }

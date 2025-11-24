@@ -22,4 +22,5 @@ public class ClinicResponseDto {
     private String description;
     private BigDecimal price;
     private UUID userId;
+    private Double averageRating;
 }

@@ -24,7 +24,7 @@ spring:
         - id: clinic-service
           uri: http://clinic-service:8083
           predicates:
-            - Path=/api/clinics/**, /api/doctors/**, /api/specialties/**
+            - Path=/api/clinics/**, /api/doctors/**, /api/specialties/**, /api/reviews/**
           filters:
             - JwtAuthFilter
 
@@ -69,3 +69,5 @@ gateway:
       methods: [ GET ]
     - path: /api/patients/**
       methods: [ GET, POST ]
+    - path: /api/reviews/**
+      methods: [ GET, POST, DELETE ]

@@ -13,7 +13,8 @@ public class RabbitMQConfig {
 
     public static final String EMAIL_EXCHANGE = "email.exchange";
 
-    public static final String EMAIL_WELCOME_ROUTING_KEY = "EMAIL.WELCOME";
+    public static final String EMAIL_WELCOME_PATIENT_ROUTING_KEY = "EMAIL.WELCOME_PATIENT";
+    public static final String EMAIL_WELCOME_CLINIC_ROUTING_KEY = "EMAIL.WELCOME_CLINIC";
     public static final String EMAIL_FORGOT_PASSWORD_ROUTING_KEY = "EMAIL.FORGOT_PASSWORD";
 
     @Bean

@@ -1,8 +1,10 @@
 package com.sgu.appointment_service.service.impl;
 
 import com.sgu.appointment_service.constant.AppointmentStatus;
-import com.sgu.appointment_service.dto.request.AppointmentCreateRequest;
-import com.sgu.appointment_service.dto.request.AppointmentUpdateRequest;
+import com.sgu.appointment_service.constant.TransferType;
+import com.sgu.appointment_service.dto.request.appointment.AppointmentCreateRequest;
+import com.sgu.appointment_service.dto.request.appointment.AppointmentUpdateRequest;
+import com.sgu.appointment_service.dto.request.transfer.TransferRequestDto;
 import com.sgu.appointment_service.dto.response.appointment.AppointmentResponseDto;
 import com.sgu.appointment_service.dto.response.common.PaginationMeta;
 import com.sgu.appointment_service.dto.response.common.PaginationResponse;
@@ -25,6 +27,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -106,6 +109,16 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         // Kiểm tra lịch trùng của Doctor
         checkDoctorAvailability(doctorId, startTime, endTime, null);
+
+        // Lấy giá tiền do clinic quy định
+        BigDecimal appointmentPrice = dto.getPrice();
+
+        TransferRequestDto transferRequest = TransferRequestDto.builder()
+                .fromUserId(dto.getPatientId()) // từ patient
+                .toUserId(dto.getClinicId())    // đến clinic
+                .amount(appointmentPrice)
+                .type(TransferType.APPOINTMENT)
+                .build();
 
         Appointment newAppointment = AppointmentMapper.toEntity(dto);
         appointmentRepository.save(newAppointment);

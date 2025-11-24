@@ -83,12 +83,12 @@ public class ReviewController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<String>> deleteReview(
+    public ResponseEntity<ApiResponse<Void>> deleteReview(
             @PathVariable UUID id
     ) {
         reviewService.deleteReview(id);
 
-        ApiResponse<String> response = ApiResponse.<String>builder()
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
                 .status(HttpStatus.OK.value())
                 .message("Review %s deleted successfully".formatted(id))
                 .build();

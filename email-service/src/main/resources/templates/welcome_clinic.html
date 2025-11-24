@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome Clinic</title>
+</head>
+<body style="font-family: Arial, sans-serif; background-color:#f9f9f9; padding:20px;">
+<div style="max-width:600px; margin:auto; background-color:#ffffff; border-radius:8px; padding:20px;">
+    <h2 style="color:#333; text-align:center;">Welcome 👋</h2>
+
+    <p>Xin chào, <b th:text="${email}">email@example.com</b></p>
+    <p>Cảm ơn bạn đã đăng ký trở thành đối tác của <b>Medibook</b>.</p>
+
+    <p>Mật khẩu đăng nhập của bạn là:</p>
+
+    <div style="
+        margin: 20px 0;
+        padding: 12px 18px;
+        background-color: #f0f4ff;
+        border-left: 4px solid #3b7cff;
+        border-radius: 4px;
+        font-size: 18px;
+        font-weight: bold;
+        color: #333;
+        text-align: center;">
+        <span th:text="${password}">your-password</span>
+    </div>
+
+    <p>Vui lòng đăng nhập và đổi mật khẩu ngay khi có thể để đảm bảo an toàn.</p>
+
+    <p style="margin-top:20px; color:#666; font-size:12px;">
+        Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email.
+    </p>
+</div>
+</body>
+</html>

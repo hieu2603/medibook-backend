@@ -15,10 +15,16 @@ import org.springframework.stereotype.Component;
 public class EmailListener {
     private final EmailService emailService;
 
-    @RabbitListener(queues = RabbitMQConfig.EMAIL_WELCOME_QUEUE)
-    public void handleWelcomeEmail(EmailMessage emailMessage) {
-        log.info("Receive EMAIL.WELCOME message for: {}", emailMessage.getTo());
-        emailService.sendEmail(emailMessage, EmailType.WELCOME);
+    @RabbitListener(queues = RabbitMQConfig.EMAIL_WELCOME_PATIENT_QUEUE)
+    public void handleWelcomePatientEmail(EmailMessage emailMessage) {
+        log.info("Receive EMAIL.WELCOME_PATIENT message for: {}", emailMessage.getTo());
+        emailService.sendEmail(emailMessage, EmailType.WELCOME_PATIENT);
+    }
+
+    @RabbitListener(queues = RabbitMQConfig.EMAIL_WELCOME_CLINIC_QUEUE)
+    public void handleWelcomeClinicEmail(EmailMessage emailMessage) {
+        log.info("Receive EMAIL.WELCOME_CLINIC message for: {}", emailMessage.getTo());
+        emailService.sendEmail(emailMessage, EmailType.WELCOME_CLINIC);
     }
 
     @RabbitListener(queues = RabbitMQConfig.EMAIL_FORGOT_PASSWORD_QUEUE)

@@ -1,4 +1,4 @@
-package com.sgu.clinic_service.dto.request.clinic;
+package com.sgu.auth_service.dto.request.clinic;
 
 import lombok.Builder;
 import lombok.Data;

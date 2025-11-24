@@ -6,7 +6,8 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum EmailType {
-    WELCOME("Chào mừng bạn đến với Medibook!", "welcome"),
+    WELCOME_PATIENT("Chào mừng bạn đến với Medibook!", "welcome_patient"),
+    WELCOME_CLINIC("Chào mừng Quý Đối Tác gia nhập hệ thống Medibook", "welcome_clinic"),
     FORGOT_PASSWORD("Yêu cầu đặt lại mật khẩu Medibook của bạn", "forgot-password"),
     BOOKING_SUCCESS("Đặt lịch khám thành công", "booking-success"),
     BOOKING_CANCELED("Lịch khám của bạn đã bị hủy", "booking-canceled");

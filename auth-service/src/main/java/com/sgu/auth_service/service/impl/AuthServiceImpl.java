@@ -11,6 +11,7 @@ import com.sgu.auth_service.dto.request.patient.PatientCreateRequest;
 import com.sgu.auth_service.dto.request.register.RegisterPatientRequestDto;
 import com.sgu.auth_service.dto.response.login.LoginResponseDto;
 import com.sgu.auth_service.dto.response.patient.PatientResponseDto;
+import com.sgu.auth_service.dto.response.register.RegisterClinicResponseDto;
 import com.sgu.auth_service.dto.response.register.RegisterPatientResponseDto;
 import com.sgu.auth_service.event.EmailEventProducer;
 import com.sgu.auth_service.exception.EmailAlreadyExistsException;
@@ -29,6 +30,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -44,8 +46,13 @@ public class AuthServiceImpl implements AuthService {
     private final AuthPermissionValidator authPermissionValidator;
     private final PatientClient patientClient;
 
+    private static final String CHARACTERS =
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+    private static final SecureRandom random = new SecureRandom();
+
     @Override
-    public RegisterPatientResponseDto register(RegisterPatientRequestDto dto) {
+    public RegisterPatientResponseDto registerPatient(RegisterPatientRequestDto dto) {
         String email = dto.getEmail().trim();
         String password = dto.getPassword().trim();
 
@@ -55,7 +62,7 @@ public class AuthServiceImpl implements AuthService {
 
         // 1. Tạo user
         String encodedPassword = passwordEncoder.encode(password);
-        User user = UserMapper.toEntity(dto, encodedPassword);
+        User user = UserMapper.fromRegisterPatientToEntity(dto, encodedPassword);
         User registeredUser = userRepository.save(user);
 
         // 2. Gọi sang patient-service tạo patient
@@ -73,9 +80,28 @@ public class AuthServiceImpl implements AuthService {
         PatientResponseDto createdPatient = response.getData();
 
         // 3. Gửi email chào mừng
-        emailEventProducer.sendWelcomeEmail(email);
+        emailEventProducer.sendWelcomePatientEmail(email);
 
-        return UserMapper.toRegisterResponseDto(registeredUser, createdPatient);
+        return UserMapper.toRegisterPatientResponseDto(registeredUser, createdPatient);
+    }
+
+    @Override
+    public RegisterClinicResponseDto registerClinic(String email) {
+        String password = generatePassword(10);
+
+        if (userRepository.existsByEmail(email)) {
+            throw new EmailAlreadyExistsException("Email already exists");
+        }
+
+        // Tạo user
+        String encodedPassword = passwordEncoder.encode(password);
+        User user = UserMapper.fromRegisterClinicToEntity(email, encodedPassword);
+        User registeredUser = userRepository.save(user);
+
+        // TODO: Gửi email chào mừng + mật khẩu cho clinic
+        emailEventProducer.sendWelcomeClinicEmail(email, password);
+
+        return UserMapper.toRegisterClinicResponseDto(registeredUser);
     }
 
     @Override
@@ -189,5 +215,17 @@ public class AuthServiceImpl implements AuthService {
         user.setStatus(Status.ACTIVE);
 
         userRepository.save(user);
+    }
+
+    // Tạo mật khẩu ngẫu nhiên cho clinic
+    private String generatePassword(int length) {
+        StringBuilder password = new StringBuilder(length);
+
+        for (int i = 0; i < length; i++) {
+            int index = random.nextInt(CHARACTERS.length());
+            password.append(CHARACTERS.charAt(index));
+        }
+
+        return password.toString();
     }
 }

@@ -16,9 +16,13 @@ import org.springframework.context.annotation.Configuration;
 public class RabbitMQConfig {
     public static final String EMAIL_EXCHANGE = "email.exchange";
 
-    // Welcome Email
-    public static final String EMAIL_WELCOME_QUEUE = "email.welcome.queue";
-    public static final String EMAIL_WELCOME_ROUTING_KEY = "EMAIL.WELCOME";
+    // Welcome Patient Email
+    public static final String EMAIL_WELCOME_PATIENT_QUEUE = "email.welcome-patient.queue";
+    public static final String EMAIL_WELCOME_PATIENT_ROUTING_KEY = "EMAIL.WELCOME_PATIENT";
+
+    // Welcome Clinic Email
+    public static final String EMAIL_WELCOME_CLINIC_QUEUE = "email.welcome-clinic.queue";
+    public static final String EMAIL_WELCOME_CLINIC_ROUTING_KEY = "EMAIL.WELCOME_CLINIC";
 
     // Forgot Password Email
     public static final String EMAIL_FORGOT_PASSWORD_QUEUE = "email.forgot-password.queue";
@@ -37,18 +41,32 @@ public class RabbitMQConfig {
         return new TopicExchange(EMAIL_EXCHANGE);
     }
 
-    // Welcome Queue + Binding
+    // Welcome Patient Queue + Binding
     @Bean
-    public Queue welcomeQueue() {
-        return new Queue(EMAIL_WELCOME_QUEUE, true);
+    public Queue welcomePatientQueue() {
+        return new Queue(EMAIL_WELCOME_PATIENT_QUEUE, true);
     }
 
     @Bean
-    public Binding welcomeBinding(Queue welcomeQueue, TopicExchange emailExchange) {
+    public Binding welcomePatientBinding(Queue welcomePatientQueue, TopicExchange emailExchange) {
         return BindingBuilder
-                .bind(welcomeQueue)
+                .bind(welcomePatientQueue)
                 .to(emailExchange)
-                .with(EMAIL_WELCOME_ROUTING_KEY);
+                .with(EMAIL_WELCOME_PATIENT_ROUTING_KEY);
+    }
+
+    // Welcome Clinic Queue + Binding
+    @Bean
+    public Queue welcomeClinicQueue() {
+        return new Queue(EMAIL_WELCOME_CLINIC_QUEUE, true);
+    }
+
+    @Bean
+    public Binding welcomeClinicBinding(Queue welcomeClinicQueue, TopicExchange emailExchange) {
+        return BindingBuilder
+                .bind(welcomeClinicQueue)
+                .to(emailExchange)
+                .with(EMAIL_WELCOME_CLINIC_ROUTING_KEY);
     }
 
     // Reset Password Queue + Binding

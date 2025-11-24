@@ -1,0 +1,24 @@
+package com.sgu.clinic_service.dto.response.clinic;
+
+import com.sgu.clinic_service.constant.Role;
+import com.sgu.clinic_service.constant.Status;
+import lombok.Builder;
+import lombok.Data;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.UUID;
+
+@Data
+@Builder
+public class RegisterClinicResponseDto {
+    private UUID id;
+    private String email;
+    private Role role;
+    private String avatarUrl;
+    private BigDecimal balance;
+    private BigDecimal pendingBalance;
+    private Status status;
+    private LocalDate createdAt;
+    private ClinicResponseDto clinic;
+}

@@ -1,4 +1,4 @@
-package com.sgu.appointment_service.dto.request;
+package com.sgu.appointment_service.dto.request.appointment;
 
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Future;

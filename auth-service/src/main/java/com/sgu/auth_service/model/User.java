@@ -35,7 +35,7 @@ public class User {
 
     @Column(name = "avatar_url", nullable = false)
     @Builder.Default
-    private String avatarUrl = "https://www.facebook.com/";
+    private String avatarUrl = "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg";
 
     @Column(name = "balance", nullable = false)
     @Builder.Default

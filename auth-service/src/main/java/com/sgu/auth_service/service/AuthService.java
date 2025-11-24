@@ -6,12 +6,15 @@ import com.sgu.auth_service.dto.request.password.ForgotPasswordRequestDto;
 import com.sgu.auth_service.dto.request.password.ResetPasswordRequestDto;
 import com.sgu.auth_service.dto.request.register.RegisterPatientRequestDto;
 import com.sgu.auth_service.dto.response.login.LoginResponseDto;
+import com.sgu.auth_service.dto.response.register.RegisterClinicResponseDto;
 import com.sgu.auth_service.dto.response.register.RegisterPatientResponseDto;
 
 import java.util.UUID;
 
 public interface AuthService {
-    RegisterPatientResponseDto register(RegisterPatientRequestDto dto);
+    RegisterPatientResponseDto registerPatient(RegisterPatientRequestDto dto);
+
+    RegisterClinicResponseDto registerClinic(String email);
 
     LoginResponseDto login(LoginRequestDto dto);
 

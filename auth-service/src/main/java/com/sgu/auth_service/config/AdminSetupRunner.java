@@ -19,7 +19,7 @@ public class AdminSetupRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        String adminEmail = "nguyenvanhieu2603@gmail.com";
+        String adminEmail = "admin@gmail.com";
         String adminPassword = "admin123";
 
         boolean adminExists = userRepository.existsByEmail(adminEmail);

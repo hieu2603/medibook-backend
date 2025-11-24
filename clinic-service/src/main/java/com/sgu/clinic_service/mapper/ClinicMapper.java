@@ -13,6 +13,12 @@ public class ClinicMapper {
     public static Clinic toEntity(ClinicCreateRequestDto dto) {
         return Clinic.builder()
                 .clinicName(dto.getClinicName())
+                .phone(dto.getPhone())
+                .address(dto.getAddress())
+                .latitude(dto.getLatitude())
+                .longitude(dto.getLongitude())
+                .description(dto.getDescription())
+                .price(dto.getPrice())
                 .userId(dto.getUserId())
                 .build();
     }

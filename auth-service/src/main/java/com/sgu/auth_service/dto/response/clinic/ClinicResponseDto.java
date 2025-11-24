@@ -1,4 +1,4 @@
-package com.sgu.clinic_service.dto.request.clinic;
+package com.sgu.auth_service.dto.response.clinic;
 
 import lombok.Builder;
 import lombok.Data;
@@ -8,7 +8,8 @@ import java.util.UUID;
 
 @Data
 @Builder
-public class ClinicCreateRequestDto {
+public class ClinicResponseDto {
+    private UUID id;
     private String clinicName;
     private String phone;
     private String address;

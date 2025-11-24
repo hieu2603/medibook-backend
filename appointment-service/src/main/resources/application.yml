@@ -3,7 +3,7 @@ spring:
     name: appointment-service
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/appointment_service
+    url: jdbc:postgresql://postgres:5432/appointment_service
     username: postgres
     password: root
 
@@ -12,11 +12,9 @@ spring:
       ddl-auto: update
     show-sql: true
 
-#user-service:
-#  url: http://user-service:8082
-#
-#patient-service:
-#  url: http://patient-service:8084
-#
-#clinic-service:
-#  url: http://clinic-service:8083
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE}
+    register-with-eureka: true
+    fetch-registry: true

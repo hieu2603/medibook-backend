@@ -7,6 +7,7 @@ import com.sgu.auth_service.dto.request.password.ForgotPasswordRequestDto;
 import com.sgu.auth_service.dto.request.password.ResetPasswordRequestDto;
 import com.sgu.auth_service.dto.request.register.RegisterPatientRequestDto;
 import com.sgu.auth_service.dto.response.login.LoginResponseDto;
+import com.sgu.auth_service.dto.response.register.RegisterClinicResponseDto;
 import com.sgu.auth_service.dto.response.register.RegisterPatientResponseDto;
 import com.sgu.auth_service.service.AuthService;
 import jakarta.validation.Valid;
@@ -27,9 +28,26 @@ public class AuthController {
     public ResponseEntity<ApiResponse<RegisterPatientResponseDto>> registerPatient(
             @Valid @RequestBody RegisterPatientRequestDto dto
     ) {
-        RegisterPatientResponseDto registeredUser = authService.register(dto);
+        RegisterPatientResponseDto registeredUser = authService.registerPatient(dto);
 
         ApiResponse<RegisterPatientResponseDto> response = ApiResponse.<RegisterPatientResponseDto>builder()
+                .status(HttpStatus.CREATED.value())
+                .message("Patient registered successfully")
+                .data(registeredUser)
+                .build();
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(response);
+    }
+
+    @PostMapping("/register-clinic")
+    public ResponseEntity<ApiResponse<RegisterClinicResponseDto>> registerClinic(
+            @RequestBody String email
+    ) {
+        RegisterClinicResponseDto registeredUser = authService.registerClinic(email);
+
+        ApiResponse<RegisterClinicResponseDto> response = ApiResponse.<RegisterClinicResponseDto>builder()
                 .status(HttpStatus.CREATED.value())
                 .message("Patient registered successfully")
                 .data(registeredUser)

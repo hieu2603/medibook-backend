@@ -1,6 +1,6 @@
 package com.sgu.appointment_service.mapper;
 
-import com.sgu.appointment_service.dto.request.AppointmentCreateRequest;
+import com.sgu.appointment_service.dto.request.appointment.AppointmentCreateRequest;
 import com.sgu.appointment_service.dto.response.appointment.AppointmentResponseDto;
 import com.sgu.appointment_service.model.Appointment;
 

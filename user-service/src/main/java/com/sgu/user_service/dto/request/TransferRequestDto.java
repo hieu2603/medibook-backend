@@ -13,10 +13,10 @@ import java.util.UUID;
 @Builder
 public class TransferRequestDto {
     @NotNull(message = "Sender ID is required")
-    private UUID fromUserId; // Thường là user id của patient
+    private UUID fromUserId;
 
     @NotNull(message = "Receiver ID is required")
-    private UUID toUserId; // Thường là user id của clinic
+    private UUID toUserId;
 
     @NotNull(message = "Amount is required")
     @DecimalMin(value = "1", message = "Amount must be greater than 0")

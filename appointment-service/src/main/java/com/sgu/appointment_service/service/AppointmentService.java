@@ -1,8 +1,8 @@
 package com.sgu.appointment_service.service;
 
 import com.sgu.appointment_service.constant.AppointmentStatus;
-import com.sgu.appointment_service.dto.request.AppointmentCreateRequest;
-import com.sgu.appointment_service.dto.request.AppointmentUpdateRequest;
+import com.sgu.appointment_service.dto.request.appointment.AppointmentCreateRequest;
+import com.sgu.appointment_service.dto.request.appointment.AppointmentUpdateRequest;
 import com.sgu.appointment_service.dto.response.appointment.AppointmentResponseDto;
 import com.sgu.appointment_service.dto.response.common.PaginationResponse;
 import com.sgu.appointment_service.dto.response.doctor.DoctorAvailableResponse;

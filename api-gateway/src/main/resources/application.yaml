@@ -6,6 +6,20 @@ spring:
     name: api-gateway
   cloud:
     gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "http://localhost:5173"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
+      
       routes:
         - id: auth-service
           uri: http://auth-service:8081
@@ -17,14 +31,14 @@ spring:
         - id: user-service
           uri: http://user-service:8082
           predicates:
-            - Path=/api/users/**
+            - Path=/api/users/**, /api/balance/**
           filters:
             - JwtAuthFilter
 
         - id: clinic-service
           uri: http://clinic-service:8083
           predicates:
-            - Path=/api/clinics/**, /api/doctors/**, /api/specialties/**, /api/reviews/**
+            - Path=/api/clinics/**, /api/doctors/**, /api/specialties/**, /api/reviews/**, /api/clinic-registrations/**
           filters:
             - JwtAuthFilter
 
@@ -32,6 +46,13 @@ spring:
           uri: http://patient-service:8084
           predicates:
             - Path=/api/patients/**
+          filters:
+            - JwtAuthFilter
+
+        - id: appointment-service
+          uri: http://appointment-service:8085
+          predicates:
+            - Path=/api/appointments/**
           filters:
             - JwtAuthFilter
 
@@ -57,8 +78,12 @@ gateway:
       methods: [ POST ]
     - path: /api/users/**
       methods: [ POST ]
+    - path: /api/balance/**
+      methods: [ POST ]
     - path: /api/clinics
       methods: [ GET, POST ]
+    - path: /api/clinic-registrations/**
+      methods: [ GET, POST, PATCH ]
     - path: /api/clinics/{id}
       methods: [ GET ]
     - path: /api/clinics/images/{clinicId}
@@ -71,3 +96,5 @@ gateway:
       methods: [ GET, POST ]
     - path: /api/reviews/**
       methods: [ GET, POST, DELETE ]
+    - path: /api/appointments/**
+      methods: [ GET, POST, PUT, PATCH ]

@@ -13,13 +13,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/wallet")
+@RequestMapping("/balance")
 @RequiredArgsConstructor
 public class TransferController {
 
     private final UserService userService;
 
-    // Appointment Service sẽ gọi endpoint này
+    // Appointment Service sẽ gọi endpoint này (frontend không cần xử lý endpoint này)
     @PostMapping("/appointment-payment")
     public ResponseEntity<ApiResponse<Void>> payForAppointment(
             @Valid @RequestBody TransferRequestDto dto
@@ -36,7 +36,7 @@ public class TransferController {
                 .body(response);
     }
 
-    // Appointment Service sẽ gọi endpoint này
+    // Appointment Service sẽ gọi endpoint này (frontend không cần xử lý endpoint này)
     @PostMapping("/refund")
     public ResponseEntity<ApiResponse<Void>> refundPayment(
             @Valid @RequestBody TransferRequestDto dto

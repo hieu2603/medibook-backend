@@ -14,7 +14,7 @@ public class EmailEventProducer {
 
     private final RabbitTemplate rabbitTemplate;
 
-    public void sendWelcomeEmail(String to) {
+    public void sendWelcomePatientEmail(String to) {
         Map<String, Object> variables = Map.of(
                 "email", to
         );
@@ -26,7 +26,25 @@ public class EmailEventProducer {
 
         rabbitTemplate.convertAndSend(
                 RabbitMQConfig.EMAIL_EXCHANGE,
-                RabbitMQConfig.EMAIL_WELCOME_ROUTING_KEY,
+                RabbitMQConfig.EMAIL_WELCOME_PATIENT_ROUTING_KEY,
+                emailMessage
+        );
+    }
+
+    public void sendWelcomeClinicEmail(String to, String password) {
+        Map<String, Object> variables = Map.of(
+                "email", to,
+                "password", password
+        );
+
+        EmailMessage emailMessage = EmailMessage.builder()
+                .to(to)
+                .variables(variables)
+                .build();
+
+        rabbitTemplate.convertAndSend(
+                RabbitMQConfig.EMAIL_EXCHANGE,
+                RabbitMQConfig.EMAIL_WELCOME_CLINIC_ROUTING_KEY,
                 emailMessage
         );
     }

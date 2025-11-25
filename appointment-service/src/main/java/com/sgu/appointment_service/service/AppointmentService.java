@@ -31,5 +31,7 @@ public interface AppointmentService {
 
     void cancelAppointment(UUID appointmentId);
 
+    void completeAppointment(UUID appointmentId);
+
     DoctorAvailableResponse getDoctorAvailableSlots(UUID doctorId, LocalDate date);
 }

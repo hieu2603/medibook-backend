@@ -1,5 +1,6 @@
 package com.sgu.appointment_service.service.impl;
 
+import com.sgu.appointment_service.client.UserClient;
 import com.sgu.appointment_service.constant.AppointmentStatus;
 import com.sgu.appointment_service.constant.TransferType;
 import com.sgu.appointment_service.dto.request.appointment.AppointmentCreateRequest;
@@ -40,6 +41,7 @@ import java.util.UUID;
 public class AppointmentServiceImpl implements AppointmentService {
 
     private final AppointmentRepository appointmentRepository;
+    private final UserClient userClient;
 
     @Override
     public PaginationResponse<AppointmentResponseDto> getAppointments(
@@ -119,6 +121,8 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .amount(appointmentPrice)
                 .type(TransferType.APPOINTMENT)
                 .build();
+
+        userClient.payForAppointment(transferRequest);
 
         Appointment newAppointment = AppointmentMapper.toEntity(dto);
         appointmentRepository.save(newAppointment);
@@ -214,8 +218,50 @@ public class AppointmentServiceImpl implements AppointmentService {
             throw new IllegalArgumentException("Only PENDING or CONFIRMED appointment can be cancelled");
         }
 
+        // Tính refund dựa trên trạng thái
+        BigDecimal refundAmount = appointment.getPrice();
+        if (status.equals(AppointmentStatus.CONFIRMED)) {
+            refundAmount = refundAmount.multiply(BigDecimal.valueOf(0.3));
+        }
+
+        if (refundAmount.compareTo(BigDecimal.ZERO) > 0) {
+            TransferRequestDto refundRequest = TransferRequestDto.builder()
+                    .fromUserId(appointment.getClinicId())
+                    .toUserId(appointment.getPatientId())
+                    .amount(refundAmount)
+                    .type(TransferType.REFUND)
+                    .build();
+
+            userClient.payForAppointment(refundRequest);
+        }
+
         appointment.setStatus(AppointmentStatus.CANCELLED);
         appointmentRepository.save(appointment);
+    }
+
+    @Override
+    @Transactional
+    public void completeAppointment(UUID appointmentId) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Appointment", appointmentId));
+
+        if (!appointment.getStatus().equals(AppointmentStatus.CONFIRMED)) {
+            throw new IllegalArgumentException("Only CONFIRMED appointment can be completed");
+        }
+
+        appointment.setStatus(AppointmentStatus.COMPLETED);
+        appointmentRepository.save(appointment);
+
+        if (appointment.getPrice().compareTo(BigDecimal.ZERO) > 0) {
+            TransferRequestDto settleRequest = TransferRequestDto.builder()
+                    .fromUserId(appointment.getClinicId()) // pendingBalance
+                    .toUserId(appointment.getClinicId())   // balance
+                    .amount(appointment.getPrice())
+                    .type(TransferType.SETTLE)
+                    .build();
+
+            userClient.payForAppointment(settleRequest);
+        }
     }
 
     @Override

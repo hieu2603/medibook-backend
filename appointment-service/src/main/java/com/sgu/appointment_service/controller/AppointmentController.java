@@ -147,6 +147,23 @@ public class AppointmentController {
                 .body(response);
     }
 
+    @PatchMapping("/{appointmentId}/complete")
+    public ResponseEntity<ApiResponse<Void>> completeAppointment(
+            @PathVariable UUID appointmentId
+    ) {
+        appointmentService.completeAppointment(appointmentId);
+
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
+                .status(HttpStatus.OK.value())
+                .success(true)
+                .message("Appointment %s confirmed successfully".formatted(appointmentId))
+                .build();
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(response);
+    }
+
     @GetMapping("/available-slots")
     public ResponseEntity<ApiResponse<DoctorAvailableResponse>> getDoctorAvailableSlots(
             @RequestParam UUID doctorId,

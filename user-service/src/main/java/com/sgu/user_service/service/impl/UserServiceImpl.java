@@ -151,23 +151,37 @@ public class UserServiceImpl implements UserService {
                 sender.setBalance(sender.getBalance().subtract(amount));
                 receiver.setPendingBalance(receiver.getPendingBalance().add(amount));
             }
+            // Refund: trừ pendingBalance của clinic, cộng lại vào balance của patient
             case REFUND -> {
-                if (receiver.getPendingBalance().compareTo(amount) < 0) {
-                    throw new InsufficientBalanceException("Clinic does not have enough pending balance to refund");
-                }
-                sender.setBalance(sender.getBalance().add(amount));
-                receiver.setPendingBalance(receiver.getPendingBalance().subtract(amount));
-            }
-            case SETTLE -> {
-                if (receiver.getPendingBalance().compareTo(amount) < 0) {
-                    throw new InsufficientBalanceException("Clinic does not have enough pending balance to settle");
-                }
-                receiver.setPendingBalance(receiver.getPendingBalance().subtract(amount));
+                sender.setPendingBalance(sender.getPendingBalance().subtract(amount));
                 receiver.setBalance(receiver.getBalance().add(amount));
+            }
+            // Khi appointment COMPLETED, chuyển tiền từ pendingBalance -> balance của clinic và balance của admin
+            case SETTLE -> {
+                // Trừ pendingBalance
+                receiver.setPendingBalance(receiver.getPendingBalance().subtract(amount));
+
+                // Tính hoa hồng 10% trên mỗi appointment completed
+                BigDecimal adminFee;
+                if (amount.compareTo(BigDecimal.ZERO) == 0) {
+                    adminFee = BigDecimal.valueOf(20000);                // 20k
+                } else {
+                    adminFee = amount.multiply(BigDecimal.valueOf(0.1)); // 10%
+                }
+
+                BigDecimal clinicReceives = amount.subtract(adminFee);
+
+                // Cộng vào balance của clinic
+                receiver.setBalance(receiver.getBalance().add(clinicReceives));
+
+                // Cộng vào balance của admin
+                User admin = userRepository.findByEmail("admin@gmail.com");
+                admin.setBalance(admin.getBalance().add(adminFee));
+
+                userRepository.saveAll(List.of(receiver, admin));
             }
         }
 
-        userRepository.save(sender);
-        userRepository.save(receiver);
+        userRepository.saveAll(List.of(sender, receiver));
     }
 }

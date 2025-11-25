@@ -13,14 +13,14 @@ import java.util.UUID;
 @Data
 @Builder
 public class AppointmentCreateRequest {
-    @NotNull(message = "Patient ID is required")
-    private UUID patientId;
+    @NotNull(message = "User ID of patient is required")
+    private UUID patientId; // Truyền user id của patient
 
     @NotNull(message = "Doctor ID is required")
     private UUID doctorId;
 
-    @NotNull(message = "Clinic ID is required")
-    private UUID clinicId;
+    @NotNull(message = "User ID of clinic is required")
+    private UUID clinicId; // Truyền user id của clinic
 
     @NotNull(message = "Start time is required")
     @Future(message = "Start time must be in the future")

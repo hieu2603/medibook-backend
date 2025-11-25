@@ -16,6 +16,8 @@ cloudinary:
   api-secret: jv3YpmM9mXJQ3VBfXLK3JhBsSpg
 
 eureka:
+  instance:
+    hostname: user-service
   client:
     service-url:
       defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE}
